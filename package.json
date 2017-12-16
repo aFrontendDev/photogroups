@@ -1,0 +1,16 @@
+{
+  "name": "photo-library-webservice",
+  "version": "1.0.0",
+  "main": "server.js",
+  "repository": "https://github.com/ablackledge/photo-library.git",
+  "author": "Andy Blackledge <a.blackledge@building-blocks.com>",
+  "license": "MIT",
+  "private": false,
+  "dependencies": {
+    "dompurify": "^1.0.3",
+    "firebase-admin": "^5.5.1",
+    "gulp": "^3.9.1",
+    "gulp-connect": "^5.0.0",
+    "gulp-shell": "^0.6.3"
+  }
+}

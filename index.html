@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link rel="preload" href="./firebase.js" as="script" />
+
+    <!-- google auth -->
+    <meta name="google-signin-client_id" content="683058876829-os3scru4tksmeno26h77rbd5l10sj1lr.apps.googleusercontent.com">
+    <meta name="google-signin-cookiepolicy" content="single_host_origin">
+    <meta name="google-signin-scope" content="profile email">
+
+    <!-- fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Barlow:300,900" rel="stylesheet">
+
+    <title>PhotoGroups</title>
+    <link rel="stylesheet" href="./normalize.css" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="header" role="banner">
+      <div class="header__inner">
+        <div class="header__menu">
+          <button class="btn menu-btn menu-action">
+            <span class="menu-btn__line" role="presentation" aria-hidden="true"></span>
+            <span class="menu-btn__line" role="presentation" aria-hidden="true"></span>
+            <span class="menu-btn__line" role="presentation" aria-hidden="true"></span>
+            <span class="visually-hidden">Menu Btn</span>
+          </button>
+        </div>
+        <div class="header__title">
+          <h1 class="title">
+            <a href="/">
+              Photo<span>Groups</span>
+            </a>
+          </h1>
+        </div>
+        <div class="header__utils">
+          <div class="header__utils-item login">
+            <button class="btn login-register-btn login-register-action">Sign In / Sign Up</button>
+            <button class="btn logout-btn logout-action">Sign Out</button>
+          </div>
+          <div class="header__utils-item group-create">
+            <button class="btn btn--disabled group-create-btn group-create-action" disabled>Create Group</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="main" id="main" role="main">
+
+    </main>
+
+    <!-- <footer class="footer" role="footer">
+    </footer> -->
+
+    <nav class="menu">
+      <div class="menu__inner">
+        <h2 class="menu__title">Menu</h2>
+        <ul class="menu__list">
+          <li class="menu__item">
+            <a href="./home.html" class="menu__link">Home</a>
+          </li>
+          <li class="menu__item">
+            <a href="./about.html" class="menu__link">About</a>
+          </li>
+          <li class="menu__item">
+            <a href="./contact.html" class="menu__link">Contact</a>
+          </li>
+        </ul>
+
+        <section class="groups-listing">
+          <h2 class="menu__title groups-listing__title">Your Groups</h2>
+          <ul class="groups-listing__list menu__list menu__list--groups">
+          </ul>
+        </section>
+      </div>
+    </nav>
+
+    <script src="./firebase.js"></script>
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+
+    <script src="./scripts.js" defer></script>
+  </body>
+</html>
