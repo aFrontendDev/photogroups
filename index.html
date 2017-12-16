@@ -22,7 +22,7 @@
   <body>
     <header class="header" role="banner">
       <div class="header__inner">
-        <div class="header__menu">
+        <div class="header__menu header__item">
           <button class="btn menu-btn menu-action">
             <span class="menu-btn__line" role="presentation" aria-hidden="true"></span>
             <span class="menu-btn__line" role="presentation" aria-hidden="true"></span>
@@ -30,19 +30,19 @@
             <span class="visually-hidden">Menu Btn</span>
           </button>
         </div>
-        <div class="header__title">
+        <div class="header__title header__item">
           <h1 class="title">
             <a href="/">
               Photo<span>Groups</span>
             </a>
           </h1>
         </div>
-        <div class="header__utils">
-          <div class="header__utils-item login">
+        <div class="header__utils header__item">
+          <div class="header__utils-item">
             <button class="btn login-register-btn login-register-action">Sign In / Sign Up</button>
             <button class="btn logout-btn logout-action">Sign Out</button>
           </div>
-          <div class="header__utils-item group-create">
+          <div class="header__utils-item">
             <button class="btn btn--disabled group-create-btn group-create-action" disabled>Create Group</button>
           </div>
         </div>
@@ -50,7 +50,6 @@
     </header>
 
     <main class="main" id="main" role="main">
-
     </main>
 
     <!-- <footer class="footer" role="footer">
@@ -58,7 +57,7 @@
 
     <nav class="menu">
       <div class="menu__inner">
-        <h2 class="menu__title">Menu</h2>
+        <h2 class="menu__title title-style-a">Menu</h2>
         <ul class="menu__list">
           <li class="menu__item">
             <a href="./home.html" class="menu__link">Home</a>
@@ -72,12 +71,64 @@
         </ul>
 
         <section class="groups-listing">
-          <h2 class="menu__title groups-listing__title">Your Groups</h2>
+          <h2 class="menu__title groups-listing__title title-style-a">Your Groups</h2>
           <ul class="groups-listing__list menu__list menu__list--groups">
           </ul>
         </section>
       </div>
     </nav>
+
+    <section class="user-menu">
+      <div class="user-menu__inner">
+        <h2 class="user-menu__title title-style-a">User Menu</h2>
+        <div class="login">
+          <button class="btn btn--style-a login__btn login__google">
+            <span>Login/Register with Google</span>
+          </button>
+          <button class="btn btn--style-a login__btn login__facebook">
+            <span>Login/Register with facebook</span>
+          </button>
+          <form class="login__custom">
+            <fieldset>
+              <label for="login-email">Email:</label>
+              <input type="email" name="login-email" class="login__input" placeholder="e.g. john@gmail.com" />
+            </fieldset>
+            <fieldset>
+              <label for="login-password">Password:</label>
+              <input type="password" name="login-password" class="login__input"/>
+            </fieldset>
+            <button class="btn btn--style-b login__btn login__custom">
+              <span>Login</span>
+            </button>
+          </form>
+        </div>
+        <section class="register">
+          <h3 class="register__title title-style-a">Register with email</h3>
+          <form class="register__custom">
+            <fieldset>
+              <label for="register-email">Email:</label>
+              <input type="email" name="register-email" class="register__input" placeholder="e.g. john@gmail.com" />
+            </fieldset>
+            <fieldset>
+              <label for="register-firstname">First name:</label>
+              <input type="text" name="register-firstname" class="register__input" placeholder="e.g. John" />
+            </fieldset>
+            <fieldset>
+              <label for="register-lastname">Last name:</label>
+              <input type="text" name="register-lastname" class="register__input" placeholder="e.g. Smith" />
+            </fieldset>
+            <fieldset>
+              <label for="register-password">Password:</label>
+              <input type="password" name="register-password" class="register__input" />
+              <p class="helper">*minimum 6 characters required</p>
+            </fieldset>
+            <button class="btn btn--style-b register__btn register__action">
+              <span>Register</span>
+            </button>
+          </form>
+        </section>
+      </div>
+    </section>
 
     <script src="./firebase.js"></script>
     <script src="https://apis.google.com/js/platform.js" async defer></script>
