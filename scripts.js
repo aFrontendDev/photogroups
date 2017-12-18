@@ -13,6 +13,7 @@ var siteObj = siteObj ? siteObj : {};
       storageBucket: "photogroups-4c0ba.appspot.com",
       messagingSenderId: "959482757186"
     },
+    validationErrorClass: 'validation-errors',
     loggedInEvents() {
       const self = this;
 
@@ -56,31 +57,211 @@ var siteObj = siteObj ? siteObj : {};
     }
   };
 
+  siteObj.associateTables = {
+    associateImgToUser(imageData, imageKey) {
+      const self = this;
+
+      fetch('http://127.0.0.1:4000/ImgToUser', {
+        method: 'POST',
+        headers: new Headers({
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        }),
+        body: JSON.stringify({
+          imageKey,
+          group: imageData.groupId,
+          user: imageData.userId,
+          fileType: imageData.fileType,
+          imageName: imageData.name
+        })
+      })
+        .then(res => {
+          // console.log(res);
+        })
+        .catch(err => {
+          console.log(err);
+        });
+    },
+    associateImgToGroup(imageData, imageKey) {
+      const self = this;
+
+      fetch('http://127.0.0.1:4000/ImgToGroup', {
+        method: 'POST',
+        headers: new Headers({
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        }),
+        body: JSON.stringify({
+          imageKey,
+          group: imageData.groupId,
+          user: imageData.userId,
+          fileType: imageData.fileType,
+          imageName: imageData.name
+        })
+      })
+        .then(res => {
+          // console.log(res);
+        })
+        .catch(err => {
+          console.log(err);
+        });
+    },
+    associateGroupToUser(userId, groupId, groupName) {
+      const self = this;
+
+      fetch('http://127.0.0.1:4000/GroupToUser', {
+        method: 'POST',
+        headers: new Headers({
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        }),
+        body: JSON.stringify({
+          groupId,
+          userId,
+          groupName
+        })
+      })
+        .then(res => {
+
+          res.json()
+            .catch(err => {
+              console.log(err);
+            })
+            .then(resJson => {
+              console.log('group added');
+              console.log(resJson);
+            });
+        })
+        .catch(err => {
+          console.log(err);
+        });
+    }
+  };
+
   siteObj.createGroup = {
-    _CreateGroupAction: null,
+    inClass: 'create-group-in',
+    showClass: 'create-group-show',
+    _CreateGroupModalAction: null,
+    _CreateGroupModal: null,
+    _CloseAction: null,
+    _CreateForm: null,
+    _Link: null,
+    addGroupUrl: 'http://localhost:8080/group.html',
     init() {
       const self = this;
 
-      self._CreateGroupAction = document.querySelector('.group-create-action');
+      self._CreateGroupModalAction = document.querySelector('.group-create-action');
+      self._CreateGroupModal = document.querySelector('.create-group');
+
+      if (!self._CreateGroupModalAction || !self._CreateGroupModal) {
+        return;
+      }
+
+      self._Link = document.querySelector('.create-group__link');
+      self.bindEvents();
     },
     bindEvents() {
       const self = this;
+
+      self._CreateGroupModalAction.addEventListener('click', self.modalOpenHandler);
+
+      self._CloseAction = document.querySelector('.create-group__close-action');
+      if (self._CloseAction) {
+        self._CloseAction.addEventListener('click', self.closeHandler);
+      }
+
+      self._CreateForm = document.querySelector('.create-group__form');
+      if (self._CreateForm) {
+        self._CreateForm.addEventListener('submit', self.createGroupHandler);
+      }
+    },
+    createGroupHandler(e) {
+      const self = siteObj.createGroup;
+      e.preventDefault();
+
+      const _Form = this;
+      const _Input = _Form.querySelector('input[name="create-group-name"]');
+      const inputVal = _Input.value;
+
+      if (!inputVal) {
+        _Form.classList.add(siteObj.globals.validationErrorClass);
+        return;
+      }
+
+      self.addGroup(inputVal);
+    },
+    closeHandler() {
+      const self = siteObj.createGroup;
+
+      document.body.classList.remove(self.showClass);
+      document.body.classList.remove(self.inClass);
+    },
+    modalOpenHandler() {
+      const self = siteObj.createGroup;
+
+      document.body.classList.add(self.inClass);
+      document.body.classList.add(self.showClass);
     },
     enableBtn() {
       const self = this;
 
-      if (self._CreateGroupAction) {
-        self._CreateGroupAction.removeAttribute('disabled');
-        self._CreateGroupAction.classList.remove('btn--disabled');
+      if (self._CreateGroupModalAction) {
+        self._CreateGroupModalAction.removeAttribute('disabled');
+        self._CreateGroupModalAction.classList.remove('btn--disabled');
       }
     },
     disableBtn() {
       const self = this;
 
-      if (self._CreateGroupAction) {
-        self._CreateGroupAction.setAttribute('disabled', 'disabled');
-        self._CreateGroupAction.classList.add('btn--disabled');
+      if (self._CreateGroupModalAction) {
+        self._CreateGroupModalAction.setAttribute('disabled', 'disabled');
+        self._CreateGroupModalAction.classList.add('btn--disabled');
       }
+    },
+    addGroup(groupName) {
+      const self = this;
+
+      if (!groupName) {
+        return;
+      }
+
+      if (!siteObj.globals.user.uid) {
+        return;
+      }
+
+      fetch('http://127.0.0.1:4000/addGroup', {
+        method: 'POST',
+        headers: new Headers({
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        }),
+        body: JSON.stringify({
+          groupName,
+          user: siteObj.globals.user.uid
+        })
+      })
+        .then(res => {
+          const response = res;
+
+          response.json()
+          .then(resJson => {
+            const key = resJson.key;
+            siteObj.associateTables.associateGroupToUser(siteObj.globals.user.uid, key, groupName);
+
+              if (response.status === 200) {
+                const linkUrl = `${self.addGroupUrl}?groupid=${key}`;
+                self._Link.value = linkUrl;
+                siteObj.shareGroup.populateLinks(linkUrl);
+                document.body.classList.add('group-created');
+              }
+            })
+            .catch(err => {
+              console.log(err);
+            });
+        })
+        .catch(err => {
+          console.log(err);
+        });
     }
   };
 
@@ -97,32 +278,32 @@ var siteObj = siteObj ? siteObj : {};
         return;
       }
 
-      let href = null;
 
       for (const _Link of _Links) {
         const dataPlatform = _Link.getAttribute('data-share-platform');
+        let href = null;
 
         switch(dataPlatform) {
           case 'facebook':
-            href = `http://www.facebook.com/dialog/send?app_id=1018836631592625&link=${url}`;
+            href = `fb-messenger://share/?link=${url}&app_id=1018836631592625`;
             break;
-          
+
           case 'whatsapp':
             href = `whatsapp://send?text=Hey! Join my new photo group at ${url}`;
             break;
-          
+
           case 'email':
             href = `mailto:?subject=Hey! Join my new photo group&body=I've made a new photo group, join and add your pictures here: ${url}`;
             break;
         }
-      }
 
-      if (!href) {
-        return;
-      }
+        if (!href) {
+          return;
+        }
 
-      _Link.setAttribute('href', href);
-      _Link.removeAttribute('disabled');
+        _Link.setAttribute('href', href);
+        _Link.removeAttribute('disabled');
+      }
     }
   };
 
@@ -134,7 +315,6 @@ var siteObj = siteObj ? siteObj : {};
     _SignoutAction: null,
     _LoginCustomForm: null,
     menuInClass: 'user-menu-in',
-    validationErrorClass: 'validation-errors',
     loggedInClass: 'logged-in',
     init() {
       const self = this;
@@ -266,10 +446,10 @@ var siteObj = siteObj ? siteObj : {};
 
       if (emptyField) {
         console.log('empty fields');
-        _Form.classList.add(self.validationErrorClass);
+        _Form.classList.add(siteObj.globals.validationErrorClass);
         return;
       }
-      _Form.classList.remove(self.validationErrorClass);
+      _Form.classList.remove(siteObj.globals.validationErrorClass);
 
       firebase.auth().createUserWithEmailAndPassword(emailVal, passwordVal)
         .then(user => {
@@ -352,10 +532,10 @@ var siteObj = siteObj ? siteObj : {};
 
       if (emptyField) {
         console.log('empty fields');
-        _Form.classList.add(self.validationErrorClass);
+        _Form.classList.add(siteObj.globals.validationErrorClass);
         return;
       }
-      _Form.classList.remove(self.validationErrorClass);
+      _Form.classList.remove(siteObj.globals.validationErrorClass);
 
       self.signInCustom(_Form, emailVal, passwordVal);
     },
@@ -412,10 +592,60 @@ var siteObj = siteObj ? siteObj : {};
           console.log(err);
         });
     }
-  }
+  };
+
+  siteObj.copyToClipboard = {
+    _CopyBtns: null,
+    init() {
+      const self = this;
+
+      self._CopyBtns = null;
+      self._CopyBtns = document.querySelectorAll('.copy-to-clipboard-action');
+      if (!self._CopyBtns || self._CopyBtns.length < 1) {
+        return;
+      }
+
+      self.bindEvents();
+    },
+    bindEvents() {
+      const self = this;
+
+      for (const _CopyBtn of self._CopyBtns) {
+        _CopyBtn.removeEventListener('click', self.copyBtnHandler);
+        _CopyBtn.addEventListener('click', self.copyBtnHandler);
+      }
+    },
+    copyBtnHandler(e) {
+      const self = siteObj.copyToClipboard;
+
+      const dataTarget = this.getAttribute('data-target');
+      const dataMessageTarget = this.getAttribute('data-completion-message-target');
+      const dataMessage = this.getAttribute('data-success-message');
+
+      const _MessageTarget = document.querySelector(dataMessageTarget);
+      if (!dataTarget || dataTarget.length < 1) {
+        return;
+      }
+
+      const _Target = document.querySelector(dataTarget);
+      if (!_Target) {
+        return;
+      }
+
+
+      _Target.select();
+      const copied = document.execCommand('copy');
+
+      if (copied && _MessageTarget) {
+        _MessageTarget.textContent = dataMessage ? dataMessage : "Link copied";
+      }
+    }
+  };
 
   //  init
   siteObj.menu.init();
   siteObj.userActions.init();
   siteObj.createGroup.init();
+  siteObj.copyToClipboard.init();
+  
 }());
