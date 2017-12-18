@@ -20,3 +20,4 @@ yarn-error.log*
 # private
 web_service/private-config.js
 web_service/photo-library-50525bcb22b4.json
+web_service/photogroups-4c0ba-firebase-adminsdk-9tv4c-5076a7e35d.json

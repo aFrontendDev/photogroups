@@ -13,7 +13,7 @@
     <meta name="google-signin-scope" content="profile email">
 
     <!-- fonts -->
-    <link href="https://fonts.googleapis.com/css?family=Barlow:300,900" rel="stylesheet">
+    <!-- <link href="https://fonts.googleapis.com/css?family=Barlow:300,900" rel="stylesheet"> -->
 
     <title>PhotoGroups</title>
     <link rel="stylesheet" href="./normalize.css" />
@@ -38,9 +38,11 @@
           </h1>
         </div>
         <div class="header__utils header__item">
-          <div class="header__utils-item">
+          <div class="header__utils-item login-actions">
             <button class="btn login-register-btn login-register-action">Sign In / Sign Up</button>
-            <button class="btn logout-btn logout-action">Sign Out</button>
+            <button class="btn logout-btn logout-action">
+              <span class="username"></span> Sign Out
+            </button>
           </div>
           <div class="header__utils-item">
             <button class="btn btn--disabled group-create-btn group-create-action" disabled>Create Group</button>
@@ -104,6 +106,7 @@
         </div>
         <section class="register">
           <h3 class="register__title title-style-a">Register with email</h3>
+          <p class="helper">*All fields required</p>
           <form class="register__custom">
             <fieldset>
               <label for="register-email">Email:</label>

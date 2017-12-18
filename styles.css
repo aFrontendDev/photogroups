@@ -1,3 +1,18 @@
+/* fonts */
+
+@font-face {
+  font-family: 'barlow';
+  src: url('./fonts/barlow-black-webfont.woff2') format('woff2');
+  font-weight: 900;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'barlow';
+  src: url('./fonts/barlow-light-webfont.woff2') format('woff2');
+  font-weight: 300;
+  font-style: normal;
+}
 
 /* settings */
 :root {
@@ -188,6 +203,7 @@ fieldset {
   color: var(--color-a);
   background-color: var(--color-d);
   margin-bottom: calc(var(--vr) * 2);
+  transition: color 250ms ease-in-out;
 }
 
 .btn--style-a span {
@@ -221,6 +237,7 @@ fieldset {
   border: 2px solid currentColor;
   background-color: #fff;
   margin-bottom: calc(var(--vr) * 2);
+  transition: color 250ms ease-in-out;
 }
 
 .btn--style-b span {
@@ -309,14 +326,32 @@ p {
 
 .header__utils {
   display: flex;
+  overflow: hidden;
+}
+
+.header__menu {
+  display: flex;
+  align-items: center;
 }
 
 .header__title {
-  flex: 1;
-  margin: 0 var(--ggw);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: var(--ggw);
 }
 
-@media (max-width: 519px) {
+.header__title .title {
+  color: var(--color-d);
+  margin-top: 9px;
+}
+
+.header__title .title span {
+  color: var(--color-b);
+}
+
+@media (max-width: 639px) {
+
   .header__inner {
     height: var(--header-height-ss);
   }
@@ -333,12 +368,18 @@ p {
   .header__utils {
     float: left;
     width: 100%;
-    margin-top: 18px;
     justify-content: space-between;
+    height: 40px;
+  }
+
+  .header__utils-item {
+    display: flex;
+    align-items: center;
   }
 }
 
-@media (min-width: 520px) {
+@media (min-width: 640px) {
+
   .header__inner {
     display: flex;
     justify-content: space-between;
@@ -349,6 +390,7 @@ p {
   .header__utils {
     align-items: center;
     justify-content: flex-end;
+    flex: 1;
   }
 
   .header__utils-item {
@@ -358,9 +400,14 @@ p {
   .header__utils-item .btn {
     font-size: 14px;
   }
+
+  .header__title {
+    margin: 0 var(--ggw);
+  }
 }
 
-@media (min-width: 900px) {
+@media (min-width: 1200px) {
+
   .header__item {
     flex: 1;
   }
@@ -376,25 +423,6 @@ p {
   .header__utils-item .btn {
     font-size: 16px;
   }
-}
-
-.header__menu {
-  display: flex;
-  align-items: center;
-}
-
-.header__title {
-  display: flex;
-  align-items: center;
-}
-
-.header__title .title {
-  transform: translateY(-3px);
-  color: var(--color-d);
-}
-
-.header__title .title span {
-  color: var(--color-b);
 }
 
 /* menu-btn */
@@ -456,22 +484,55 @@ p {
 }
 
 /* login items */
-.logout-btn {
-  display: none;
+.login-actions {
+  position: relative;
+  flex: 1;
+}
+
+.logout-btn,
+.login-register-btn {
+  position: absolute;
+  top: 50%;
+  left: 0;
   color: #fff;
+  transform: translateY(101%);
+  opacity: 0;
+  transition: transform 250ms, opacity 200ms ease-in-out;
+}
+
+.logout-btn .username {
+  display: block;
+  opacity: 0.5;
+  font-size: 12px;
 }
 
 .logged-in .logout-btn {
-  display: block;
+  transform: translateY(-50%);
+  opacity: 1;
 }
 
 .login-register-btn {
-  display: block;
-  color: #fff;
+  transform: translateY(-50%);
+  opacity: 1;
 }
 
 .logged-in .login-register-btn {
-  display: none;
+  transform: translateY(-101%);
+  opacity: 0;
+}
+
+@media (min-width: 640px) {
+
+  .login-actions .username {
+    display: inline-block;
+    font-size: 14px;
+  }
+  
+  .login-register-btn,
+  .logout-btn {
+    left: auto;
+    right: 0;
+  }
 }
 
 .group-create-btn {
