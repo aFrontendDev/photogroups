@@ -13,7 +13,16 @@ var siteObj = siteObj ? siteObj : {};
       storageBucket: "photogroups-4c0ba.appspot.com",
       messagingSenderId: "959482757186"
     },
-    count: 0
+    loggedInEvents() {
+      const self = this;
+
+      siteObj.createGroup.enableBtn();
+    },
+    loggedOutEvents() {
+      const self = this;
+
+      siteObj.createGroup.disableBtn();
+    }
   };
 
   siteObj.menu = {
@@ -47,6 +56,76 @@ var siteObj = siteObj ? siteObj : {};
     }
   };
 
+  siteObj.createGroup = {
+    _CreateGroupAction: null,
+    init() {
+      const self = this;
+
+      self._CreateGroupAction = document.querySelector('.group-create-action');
+    },
+    bindEvents() {
+      const self = this;
+    },
+    enableBtn() {
+      const self = this;
+
+      if (self._CreateGroupAction) {
+        self._CreateGroupAction.removeAttribute('disabled');
+        self._CreateGroupAction.classList.remove('btn--disabled');
+      }
+    },
+    disableBtn() {
+      const self = this;
+
+      if (self._CreateGroupAction) {
+        self._CreateGroupAction.setAttribute('disabled', 'disabled');
+        self._CreateGroupAction.classList.add('btn--disabled');
+      }
+    }
+  };
+
+  siteObj.shareGroup = {
+    populateLinks(url) {
+      const self = this;
+
+      if (!url) {
+        return;
+      }
+
+      const _Links = document.querySelectorAll('.share-group-link');
+      if (!_Links || _Links.length < 1) {
+        return;
+      }
+
+      let href = null;
+
+      for (const _Link of _Links) {
+        const dataPlatform = _Link.getAttribute('data-share-platform');
+
+        switch(dataPlatform) {
+          case 'facebook':
+            href = `http://www.facebook.com/dialog/send?app_id=1018836631592625&link=${url}`;
+            break;
+          
+          case 'whatsapp':
+            href = `whatsapp://send?text=Hey! Join my new photo group at ${url}`;
+            break;
+          
+          case 'email':
+            href = `mailto:?subject=Hey! Join my new photo group&body=I've made a new photo group, join and add your pictures here: ${url}`;
+            break;
+        }
+      }
+
+      if (!href) {
+        return;
+      }
+
+      _Link.setAttribute('href', href);
+      _Link.removeAttribute('disabled');
+    }
+  };
+
   siteObj.userActions = {
     _UserMenuAction: null,
     _GoogleAction: null,
@@ -55,6 +134,8 @@ var siteObj = siteObj ? siteObj : {};
     _SignoutAction: null,
     _LoginCustomForm: null,
     menuInClass: 'user-menu-in',
+    validationErrorClass: 'validation-errors',
+    loggedInClass: 'logged-in',
     init() {
       const self = this;
 
@@ -120,7 +201,8 @@ var siteObj = siteObj ? siteObj : {};
       }
 
       siteObj.globals.user = user;
-      document.body.classList.add('logged-in');
+      document.body.classList.add(self.loggedInClass);
+      siteObj.globals.loggedInEvents();
       const isNewUser = window.localStorage.getItem('newUser');
       if (isNewUser) {
         window.localStorage.removeItem('newUser');
@@ -133,7 +215,8 @@ var siteObj = siteObj ? siteObj : {};
       firebase.auth().signOut()
         .then(function() {
           siteObj.globals.user = null;
-          document.body.classList.remove('logged-in');
+          document.body.classList.remove(self.loggedInClass);
+          siteObj.globals.loggedOutEvents();
         })
         .catch(function(error) {
           // An error happened.
@@ -183,8 +266,10 @@ var siteObj = siteObj ? siteObj : {};
 
       if (emptyField) {
         console.log('empty fields');
+        _Form.classList.add(self.validationErrorClass);
         return;
       }
+      _Form.classList.remove(self.validationErrorClass);
 
       firebase.auth().createUserWithEmailAndPassword(emailVal, passwordVal)
         .then(user => {
@@ -267,8 +352,10 @@ var siteObj = siteObj ? siteObj : {};
 
       if (emptyField) {
         console.log('empty fields');
+        _Form.classList.add(self.validationErrorClass);
         return;
       }
+      _Form.classList.remove(self.validationErrorClass);
 
       self.signInCustom(_Form, emailVal, passwordVal);
     },
@@ -330,4 +417,5 @@ var siteObj = siteObj ? siteObj : {};
   //  init
   siteObj.menu.init();
   siteObj.userActions.init();
+  siteObj.createGroup.init();
 }());

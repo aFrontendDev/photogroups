@@ -30,6 +30,8 @@
   --color-c: #b91717;
   --color-d: #ff9d00;
 
+  --color-error: #ff0000;
+
   --gray-a: #6d6c6c;
   
   --black-a: #272727;
@@ -149,6 +151,29 @@ fieldset {
   padding-left: 0;
   margin-bottom: var(--vr);
 }
+
+.validation-message {
+  height: 0;
+  visibility: hidden;
+  color: var(--color-error);
+  position: relative;
+  padding-left: 30px;
+  font-size: 14px;
+}
+
+.validation-message svg {
+  fill: currentColor;
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.validation-errors .validation-message {
+  height: auto;
+  visibility: visible;
+}
+
 
 /* btns */
 .btn {
