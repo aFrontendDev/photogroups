@@ -14,12 +14,14 @@ var siteObj = siteObj ? siteObj : {};
       messagingSenderId: "959482757186"
     },
     _Html: document.querySelector('html'),
-    webserviceUrl: 'http://photogroups.192.168.0.3.xip.io',
+    webserviceUrl: 'http://photogroups.192.168.0.3.xip.io:4000',
+    groupsUrl: 'http://photogroups.192.168.0.3.xip.io/group',
     validationErrorClass: 'validation-errors',
     loggedInEvents() {
       const self = this;
 
       siteObj.createGroup.enableBtn();
+      siteObj.showGroups.getGroups();
     },
     loggedOutEvents() {
       const self = this;
@@ -63,7 +65,7 @@ var siteObj = siteObj ? siteObj : {};
     associateImgToUser(imageData, imageKey) {
       const self = this;
 
-      fetch(`${siteObj.globals.webserviceUrl}:4000/ImgToUser`, {
+      fetch(`${siteObj.globals.webserviceUrl}/ImgToUser`, {
         method: 'POST',
         headers: new Headers({
           'Content-Type': 'application/json',
@@ -87,7 +89,7 @@ var siteObj = siteObj ? siteObj : {};
     associateImgToGroup(imageData, imageKey) {
       const self = this;
 
-      fetch(`${siteObj.globals.webserviceUrl}:4000/ImgToGroup`, {
+      fetch(`${siteObj.globals.webserviceUrl}/ImgToGroup`, {
         method: 'POST',
         headers: new Headers({
           'Content-Type': 'application/json',
@@ -111,7 +113,7 @@ var siteObj = siteObj ? siteObj : {};
     associateGroupToUser(userId, groupId, groupName) {
       const self = this;
 
-      fetch(`${siteObj.globals.webserviceUrl}:4000/GroupToUser`, {
+      fetch(`${siteObj.globals.webserviceUrl}/GroupToUser`, {
         method: 'POST',
         headers: new Headers({
           'Content-Type': 'application/json',
@@ -132,6 +134,7 @@ var siteObj = siteObj ? siteObj : {};
             .then(resJson => {
               console.log('group added');
               console.log(resJson);
+              siteObj.showGroups.getGroups();
             });
         })
         .catch(err => {
@@ -183,14 +186,28 @@ var siteObj = siteObj ? siteObj : {};
 
       const _Form = this;
       const _Input = _Form.querySelector('input[name="create-group-name"]');
+      const _Action = _Form.querySelector('.create-group__action');
       const inputVal = _Input.value;
+
+      if (_Form.classList.contains('form-processing')) {
+        return;
+      }
 
       if (!inputVal) {
         _Form.classList.add(siteObj.globals.validationErrorClass);
         return;
       }
 
-      self.addGroup(inputVal);
+      if (_Action) {
+        _Action.setAttribute('disabled', 'disabled');
+        _Action.classList.add('btn--disabled');
+      }
+
+      _Form.classList.add('form-processing');
+      _Form.classList.add('loading');
+      _Form.reset();
+
+      self.addGroup(inputVal, _Form, _Action);
     },
     closeHandler() {
       const self = siteObj.createGroup;
@@ -203,6 +220,7 @@ var siteObj = siteObj ? siteObj : {};
 
       document.body.classList.add(self.inClass);
       document.body.classList.add(self.showClass);
+      document.body.classList.remove(siteObj.menu.menuInClass);
     },
     enableBtn() {
       const self = this;
@@ -220,10 +238,10 @@ var siteObj = siteObj ? siteObj : {};
         self._CreateGroupModalAction.classList.add('btn--disabled');
       }
     },
-    addGroup(groupName) {
+    addGroup(groupName, _Form, _Action) {
       const self = this;
 
-      if (!groupName) {
+      if (!groupName || !_Form) {
         return;
       }
 
@@ -231,7 +249,7 @@ var siteObj = siteObj ? siteObj : {};
         return;
       }
 
-      fetch(`${siteObj.globals.webserviceUrl}:4000/addGroup`, {
+      fetch(`${siteObj.globals.webserviceUrl}/addGroup`, {
         method: 'POST',
         headers: new Headers({
           'Content-Type': 'application/json',
@@ -246,11 +264,19 @@ var siteObj = siteObj ? siteObj : {};
           const response = res;
 
           response.json()
-          .then(resJson => {
-            const key = resJson.key;
-            siteObj.associateTables.associateGroupToUser(siteObj.globals.user.uid, key, groupName);
+            .then(resJson => {
+              const key = resJson.key;
+
+              if (_Action) {
+                _Action.removeAttribute('disabled', 'disabled');
+                _Action.classList.remove('btn--disabled');
+              }
+
+              _Form.classList.remove('form-processing');
+              _Form.classList.remove('loading');
 
               if (response.status === 200) {
+                siteObj.associateTables.associateGroupToUser(siteObj.globals.user.uid, key, groupName);
                 const linkUrl = `${self.addGroupUrl}?groupid=${key}`;
                 self._Link.value = linkUrl;
                 siteObj.shareGroup.populateLinks(linkUrl);
@@ -259,6 +285,12 @@ var siteObj = siteObj ? siteObj : {};
             })
             .catch(err => {
               console.log(err);
+              _Form.classList.remove('form-processing');
+              _Form.classList.remove('loading');
+              if (_Action) {
+                _Action.removeAttribute('disabled', 'disabled');
+                _Action.classList.remove('btn--disabled');
+              }
             });
         })
         .catch(err => {
@@ -452,6 +484,7 @@ var siteObj = siteObj ? siteObj : {};
         return;
       }
       _Form.classList.remove(siteObj.globals.validationErrorClass);
+      _Form.classList.add('loading');
 
       firebase.auth().createUserWithEmailAndPassword(emailVal, passwordVal)
         .then(user => {
@@ -463,19 +496,23 @@ var siteObj = siteObj ? siteObj : {};
               firebase.auth().signInWithEmailAndPassword(emailVal, passwordVal)
                 .then((user) => {
                   _Form.reset();
+                  _Form.classList.remove('loading');
                   document.body.classList.remove(self.menuInClass);
                   self.addUser(user.uid, user.displayName, user.email);
                 })
                 .catch(err => {
                   console.log(err);
+                  _Form.classList.remove('loading');
                 });
             })
             .catch(err => {
               console.log(err);
+              _Form.classList.remove('loading');
             });
         })
         .catch(err => {
           console.log(err);
+          _Form.classList.remove('loading');
         });
     },
     facebookSigninHandler() {
@@ -559,7 +596,7 @@ var siteObj = siteObj ? siteObj : {};
         return;
       }
 
-      fetch(`${siteObj.globals.webserviceUrl}:4000/addUser`, {
+      fetch(`${siteObj.globals.webserviceUrl}/addUser`, {
         method: 'POST',
         headers: new Headers({
           'Content-Type': 'application/json',
@@ -593,6 +630,233 @@ var siteObj = siteObj ? siteObj : {};
         .catch(err => {
           console.log(err);
         });
+    }
+  };
+
+  siteObj.showGroups = {
+    _Groups: null,
+    _GroupsList: null,
+    groups: null,
+    init() {
+      const self = this;
+
+      self._Groups = document.querySelector('.groups-listing');
+      if (!self._Groups) {
+        return;
+      }
+      
+      self._GroupsList = self._Groups.querySelector('.groups-listing__list');
+    },
+    getGroups() {
+      const self = this;
+
+      siteObj.getInfo.getGroups()
+        .then(res => {
+          self.populateGroupsList(res);
+        })
+        .catch(err => {
+          console.log(err);
+        });
+    },
+    populateGroupsList(groups) {
+      const self = this;
+
+      if (!groups || groups.length < 1) {
+        return;
+      }
+
+      self._GroupsList.innerHTML = '';
+      for (const group of groups) {
+        const _Li = document.createElement('li');
+        _Li.classList.add('groups-listing__item');
+        _Li.classList.add('menu__item');
+
+        const anchorTemplate = `
+          <a href="${siteObj.globals.groupsUrl}?groupid=${group.id}" class="menu__link">${group.val}</a>
+        `;
+
+        _Li.innerHTML = anchorTemplate;
+        self._GroupsList.append(_Li);
+      }
+    }
+  }
+
+  siteObj.getInfo = {
+    groups: null,
+    getGroups() {
+      const self = this;
+
+      return new Promise(function(resolve, reject) {
+
+        fetch(`${siteObj.globals.webserviceUrl}/getGroups`, {
+          method: 'POST',
+          headers: new Headers({
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          }),
+          body: JSON.stringify({
+            userId: siteObj.globals.user.uid
+          })
+        })
+          .then(res => {
+            res.json()
+              .then(resJson => {
+                self.groups = resJson.groups;
+                resolve(resJson.groups);
+              })
+              .catch(err => {
+                console.log(err);
+                reject(err);
+              })
+          })
+          .catch(err => {
+            console.log(err);
+            reject(err);
+          });
+      });
+    },
+    getImageInfo(id) {
+      const self = this;
+
+      if (!id) {
+        return;
+      }
+
+      return new Promise(function(resolve, reject) {
+        
+        fetch(`${siteObj.globals.webserviceUrl}/getImageInfo`, {
+          method: 'POST',
+          headers: new Headers({
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          }),
+          body: JSON.stringify({
+            imageId: id
+          })
+        })
+          .then(res => {
+            res.json()
+              .then(resJson => {
+                // console.log(resJson);
+                resolve(resJson.data);
+              })
+              .catch(err => {
+                console.log(err);
+                reject(err);
+              })
+          })
+          .catch(err => {
+            console.log(err);
+            reject(err);
+          });
+      });
+    },
+    getImageUrl(imageId, fileType) {
+      const self = this;
+
+      if (!imageId || !fileType) {
+        return;
+      }
+
+      return new Promise(function(resolve, reject) {
+
+        const imageStoragePath = storageRef.child(`/images/${imageId}.${fileType}`);
+
+        imageStoragePath.getDownloadURL()
+          .then(url => {
+            resolve(url);
+          })
+          .catch(err => {
+            console.log(err);
+            reject(err);
+          });
+      });
+    }
+  };
+
+  siteObj.websocket = {
+    socket: null,
+    mssgTime: 0,
+    init() {
+      const self = this;
+
+      self.socket = new WebSocket('ws://localhost:4500');
+      self.bindEvents();
+    },
+    bindEvents() {
+      const self = this;
+
+      // Connection opened
+      self.socket.addEventListener('open', function (event) {
+
+        // Listen for messages
+        self.socket.onmessage = function (event) {
+          
+          // arbitrary delay as I seemed to be getting hammered with pointless updates (probably doing something wrong)
+          if (event.timeStamp - self.mssgTime < 100) {
+            return;
+          }
+
+          self.mssgTime = event.timeStamp;
+          let jsonData = null;
+          try {
+            jsonData = JSON.parse(event.data);
+
+            if (jsonData.update === 'imageUpdated') {
+              siteObj.showGroup.updateModalImg(jsonData);
+            }
+
+            if (jsonData.update === 'new image') {
+              self.findNewImages(jsonData);
+            }
+          } catch(err) {
+            console.log(err);
+          }
+        };
+      });
+    },
+    watchGroupImage(groupId, imageId) {
+      const self = this;
+
+      if (!groupId || !imageId) {
+        return;
+      }
+
+      fetch(`${siteObj.globals.webserviceUrl}/watchGroupImage`, {
+        method: 'POST',
+        headers: new Headers({
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        }),
+        body: JSON.stringify({
+          groupId,
+          imageId
+        })
+      })
+        .catch(err => {
+          console.log(err);
+        });
+    },
+    findNewImages(imagesObject) {
+      const self = this;
+
+      if (!imagesObject) {
+        return;
+      }
+
+      const existingImages = siteObj.showGroup.groupImages;
+      if (!existingImages) {
+        return;
+      }
+
+      for (const item in imagesObject) {
+        const imageId = item;
+        const imageObject = imagesObject[imageId];
+        
+        if (!existingImages[item]) {
+          siteObj.showGroup.addSingleImage(imageId, imageObject);
+        }
+      }
     }
   };
 
@@ -691,5 +955,6 @@ var siteObj = siteObj ? siteObj : {};
   siteObj.createGroup.init();
   siteObj.copyToClipboard.init();
   siteObj.utilities.checkUserAgent();
-  
+  siteObj.showGroups.init();
+  siteObj.websocket.init();
 }());

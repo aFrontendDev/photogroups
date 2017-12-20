@@ -102,6 +102,58 @@ ul {
 
 /* elements */
 
+/* loading spinner */
+@keyframes spin {
+  0% {
+      transform: rotate(0deg);
+  }
+  100% {
+      transform: rotate(360deg);
+  }
+}
+
+.spinner {
+  width: 60px;
+  height: 60px;
+  position: absolute;
+  z-index: 3;
+  top: 50%;
+  left: 50%;
+  margin-left: -30px;
+  margin-top: -30px;
+  border-radius: 50%;
+  border-top: var(--vr) solid rgba(255, 255, 255, 1);
+  border-right: var(--vr) solid rgba(255, 255, 255, 1);
+  border-bottom: var(--vr) solid rgba(255, 255, 255, 1);
+  border-left: var(--vr) solid var(--color-d);
+  display: block;
+  transform: translateZ(0);
+  animation: spin 1.1s infinite linear;
+  opacity: 0;
+  transition: opacity 300ms ease;
+}
+
+.spinner-overlay {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: -1;
+  opacity: 0;
+  background-color: rgba(0,0,0,0.7);
+  transition: opacity 250ms ease;
+}
+
+.loading .spinner {
+  opacity: 1;
+}
+
+.loading .spinner-overlay {
+  z-index: 2;
+  opacity: 1;
+}
+
 /* forms */
 /* Remove -webkit styles from text inputs */
 input[type='text'],
@@ -629,7 +681,7 @@ p {
   overflow: auto;
 }
 
-@media (min-width: 520px) {
+@media (min-width: 640px) {
 
   .menu {
     right: 80vw;
@@ -699,7 +751,18 @@ p {
   padding: calc(var(--vr) * 2) var(--ggw);
 }
 
-@media (min-width: 520px) {
+.user-menu__inner {
+  position: relative;
+}
+
+.user-menu .spinner-overlay {
+  top: calc((var(--vr) * 2) * -1);
+  bottom: calc((var(--vr) * 2) * -1);
+  left: calc(var(--ggw) * -1);
+  right: calc(var(--ggw) * -1);
+}
+
+@media (min-width: 640px) {
   .user-menu {
     width: 400px;
     height: calc(100% - var(--header-height));
