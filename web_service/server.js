@@ -210,10 +210,9 @@ app.post('/joinGroup', function(req, res) {
 
   firebase.joinGroup(user, groupId)
     .then(function(response) {
-      // console.log(response);
-      // console.log(response.userexists);
       if (response.userexists) {
-        res.status(304).send(response);
+        // res.status(304).send(response);
+        res.send(response);
       } else {
         res.send(response);
       }
@@ -270,7 +269,7 @@ app.get('/test', function (req, res) {
 
 
 // START *** Use Express to listen to port
-app.listen(4000, 'http://photogroups.192.168.0.3.xip.io', function () {
+app.listen(4000, 'localhost', function () {
   firebase.initFirebase();
   console.log('init');
 });

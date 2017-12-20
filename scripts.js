@@ -14,14 +14,17 @@ var siteObj = siteObj ? siteObj : {};
       messagingSenderId: "959482757186"
     },
     _Html: document.querySelector('html'),
-    webserviceUrl: 'http://photogroups.192.168.0.3.xip.io:4000',
+    // webserviceUrl: 'http://photogroups.192.168.0.3.xip.io:4000',
+    webserviceUrl: 'http://localhost:4000',
     groupsUrl: 'http://photogroups.192.168.0.3.xip.io/group',
     validationErrorClass: 'validation-errors',
+    groupId: null,
     loggedInEvents() {
       const self = this;
 
       siteObj.createGroup.enableBtn();
       siteObj.showGroups.getGroups();
+      siteObj.joinGroup.init();
     },
     loggedOutEvents() {
       const self = this;
@@ -338,6 +341,413 @@ var siteObj = siteObj ? siteObj : {};
         _Link.setAttribute('href', href);
         _Link.removeAttribute('disabled');
       }
+    }
+  };
+
+  siteObj.joinGroup = {
+    groupId: null,
+    init() {
+      const self = this;
+      const groupId = siteObj.utilities.getUrlParams('groupid');
+
+      if (!siteObj.globals.user) {
+        return;
+      }
+  
+      if (groupId) {
+        siteObj.globals.groupId = groupId;
+        self.groupId = groupId;
+        self.joinGroup(groupId);
+      }
+    },
+    joinGroup(groupId) {
+      const self = this;
+
+      if (!groupId) {
+        return;
+      }
+
+      const _JoinGroup = document.querySelector('.join-group');
+      const _Joined = document.querySelector('.join-group__joined');
+
+      fetch(`${siteObj.globals.webserviceUrl}/getGroupInfo`, {
+        method: 'POST',
+        headers: new Headers({
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        }),
+        body: JSON.stringify({
+          groupId
+        })
+      })
+        .catch(err => {
+          console.log(err);
+        })
+        .then(res => {
+          res.json()
+            .catch(err => {
+              console.log(err);
+            })
+            .then(resJson => {
+
+              fetch(`${siteObj.globals.webserviceUrl}/joinGroup`, {
+                method: 'POST',
+                headers: new Headers({
+                  'Content-Type': 'application/json',
+                  Accept: 'application/json',
+                }),
+                body: JSON.stringify({
+                  groupId,
+                  user: siteObj.globals.user.uid
+                })
+              })
+                .then(res => {
+
+                  if (res.status !== 200) {
+                    return;
+                  }
+
+                  res.json()
+                    .then(resJson => {
+                      const groupName = resJson.groupName;
+
+                      if (resJson.userexists) {
+                        _JoinGroup.innerHTML = '';
+
+                        // Show group images
+                        siteObj.getGroupInfo.init(groupId);
+                        return;
+                      }
+                      siteObj.associateTables.associateGroupToUser(siteObj.globals.user.uid, groupId, groupName);
+
+                      _JoinGroup.classList.remove('loading');
+                      _JoinGroup.classList.add('join-group--success');
+
+                      // Show group images
+                      siteObj.getGroupInfo.init(groupId);
+
+                      setTimeout(() => {
+                        _JoinGroup.innerHTML = '';
+                      }, 1000);
+                    })
+                    .catch(err => {
+                      console.log(err);
+                      document.body.classList.add('join-group--fail');
+                    });
+                })
+                .catch(err => {
+                  console.log(err);
+                });
+            })
+        })
+    }
+  };
+
+  siteObj.getGroupInfo = {
+    groupImages: {},
+    _ImagesContainer: null,
+    _Group: null,
+    _GroupName: null,
+    _GroupUserCount: null,
+    init(groupId) {
+      const self = this;
+
+      if (!groupId) {
+        return;
+      }
+
+      self._ImagesContainer = document.querySelector('.image-grid__images');
+      if (!self._ImagesContainer) {
+        return;
+      }
+
+      self._GroupName = document.querySelector('.group__title');
+      self._Group = document.querySelector('.group');
+      self._GroupUserCount = document.querySelector('.group__users');
+
+      self.getGroupData(groupId);
+    },
+    getGroupData(groupId) {
+      const self = this;
+
+      if (!groupId) {
+        return;
+      }
+
+      siteObj.getInfo.getGroupInfo(groupId)
+        .catch(err => {
+          console.log(err);
+        })
+        .then(res => {
+          console.log(res);
+
+          if (self._Group) {
+            self._Group.classList.add('group--in');
+          }
+
+          if (res.Users) {
+            self.updateUserCount(res.Users);
+          }
+
+          if (res.groupName) {
+            self.addTitle(res.groupName);
+          }
+
+          if (res.Images) {
+            self.groupImages = res.Images;
+            self.getImages(groupId, res.Images);
+          } else {
+            const _NoImgs = document.createElement('p');
+            _NoImgs.textContent = 'No images have been added yet';
+            self._ImagesContainer.append(_NoImgs);
+          }
+        });
+    },
+    addTitle(name) {
+      const self = this;
+
+      if (self._GroupName && name) {
+        self._GroupName.textContent = name;
+      }
+    },
+    updateUserCount(users) {
+      const self = this;
+
+      if (self._GroupUserCount && users) {
+        const count = Object.keys(users).length;
+        if (count > 1) {
+          self._GroupUserCount.textContent = `${count} members`;
+        } else {
+          self._GroupUserCount.textContent = `${count} member`;
+        }
+      }
+    },
+    getImages(groupId, images) {
+      const self = this;
+
+      if (!groupId || !images || images.length < 1) {
+        return;
+      }
+
+      for (const image in images) {
+        const fileType = images[image].fileType;
+        const _Fig = document.createElement('figure');
+        _Fig.classList.add('image-grid__figure');
+
+        if (fileType) {
+          self._ImagesContainer.append(_Fig);
+
+          siteObj.getInfo.getImageUrl(image, fileType)
+            .then(res => {
+              // console.log(res);
+              self.addImage(image, res, _Fig);
+              self.bindImgOpenEvent(_Fig);
+            })
+            .catch(err => {
+              console.log(err);
+            });
+        }
+      }
+    },
+    addImage(image, url, _Target) {
+      const self = this;
+
+      if (!image || !url || !_Target) {
+        return;
+      }
+
+      const imageTemplate = `
+        <a href="${url}" data-image-id="${image}" class="image-grid__link image-grid__action" target="_blank" rel="noopener nofollow noreferrer">
+          <img class="image-grid__image" src="${url}" alt="uploaded image" />
+        </a>
+      `;
+
+      _Target.innerHTML = imageTemplate;
+    },
+    addSingleImage(imageId, imageObj) {
+      const self = this;
+
+      if (!imageId || !imageObj) {
+        return;
+      }
+
+      const fileType = imageObj.fileType;
+      const _Fig = document.createElement('figure');
+      _Fig.classList.add('image-grid__figure');
+
+      if (!fileType) {
+        return;
+      }
+
+      self._ImagesContainer.append(_Fig);
+      siteObj.getInfo.getImageUrl(imageId, fileType)
+        .then(res => {
+          console.log(res);
+          // we have the image so now we'll update our object of images;
+          self.addImage(imageId, res, _Fig);
+          // self.bindImgOpenEvent(_Fig);
+          self.groupImages[imageId] = imageObj;
+        })
+        .catch(err => {
+          console.log(err);
+        });
+    }
+  };
+
+  siteObj.uploadImg = {
+    _Upload: null,
+    _UploadForm: null,
+    init() {
+      const self = this;
+
+      self._Upload = document.querySelector('.image-upload');
+      self.bindEvents();
+    },
+    bindEvents() {
+      const self = this;
+
+      self._UploadForm = document.querySelector('.image-upload__form');
+      if (self._UploadForm) {
+        self._UploadForm.addEventListener('submit', self.uploadEvent);
+      }
+    },
+    uploadEvent(e) {
+      e.preventDefault();
+      const self = siteObj.uploadImg;
+      const _Form = this;
+
+      const _Name = _Form.querySelector('.image-upload__name');
+      const _FileInput = _Form.querySelector('.image-upload__file');
+      const nameVal = _Name.value;
+      let responseJson = null;
+      const group = siteObj.globals.groupId ? siteObj.globals.groupId : null;
+      const file = _FileInput.files[0];
+      const fileTypeSplit = file.type.split('/');
+      
+      if (fileTypeSplit[0] !== 'image') {
+        // TODO add message to user
+        return;
+      }
+
+      if (!group) {
+        return;
+      }
+
+      const imageData = {
+        name: nameVal,
+        file,
+        fileType: fileTypeSplit[1],
+        groupId: group,
+        userId: siteObj.globals.user.uid
+      };
+
+      // update DB entries and then when done actually upload the image to the storage db with relevant meta data
+      // This first call will upload to the image db (not the storage for the actual image, just a ref to it)
+      fetch(`${siteObj.globals.webserviceUrl}/imageUpload`, {
+        method: 'POST',
+        headers: new Headers({
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        }),
+        body: JSON.stringify({
+          name: nameVal,
+          fileType: fileTypeSplit[1],
+          group,
+          userId: siteObj.globals.user.uid,
+          userName: siteObj.globals.user.displayName
+        })
+      })
+        .then(res => {
+          // now we've added an entry to the image db and have a unique key. We'll upload the image to the storage db
+          const response = res;
+          response.json()
+            .then(resJson => {
+              const imageKey = resJson.key;
+              const userId = siteObj.globals.user.uid;
+
+              if (response.status === 200) {
+                self.uploadImg(imageData, imageKey);
+                siteObj.associateTables.associateImgToUser(imageData, imageKey);
+                siteObj.associateTables.associateImgToGroup(imageData, imageKey);
+              }
+            })
+            .catch(err => {
+              console.log(err);
+            });
+        })
+        .catch(err => {
+          console.log(err);
+        });
+    },
+    uploadImg(imageData, imageKey) {
+      const self = this;
+      const file = imageData.file;
+      const storageRef = firebase.storage().ref();
+
+      const metadata = {
+        contentType: file.type,
+        customMetadata: {
+          relatedKey: imageKey,
+          userId: imageData.userId,
+          imageName: imageData.name,
+          groupId: imageData.groupId
+        }
+      };
+
+      const fileTypeSplit = file.type.split('/');
+      if (fileTypeSplit[0] !== 'image') {
+        // TODO add message to user
+        return;
+      }
+      const fileType = fileTypeSplit[1];
+      const uploadTask = storageRef.child(`images/${imageKey}.${fileType}`).put(file, metadata);
+
+      // Listen for state changes, errors, and completion of the upload.
+      uploadTask.on(firebase.storage.TaskEvent.STATE_CHANGED, // or 'state_changed'
+        function(snapshot) {
+          // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+          let progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          console.log('Upload is ' + progress + '% done');
+          switch (snapshot.state) {
+            case firebase.storage.TaskState.PAUSED: // or 'paused'
+              // console.log('Upload is paused');
+              break;
+            case firebase.storage.TaskState.RUNNING: // or 'running'
+              // console.log('Upload is running');
+              break;
+          }
+        }, function(error) {
+        switch (error.code) {
+          case 'storage/unauthorized':
+            console.log("User doesn't have permission to access the object");
+            break;
+          case 'storage/canceled':
+            console.log("User canceled the upload");
+            break;
+          case 'storage/unknown':
+            console.log("Unknown error occurred, inspect error.serverResponse");
+            break;
+        }
+      }, function() {
+        // Upload completed successfully, now we can get the download URL
+        const downloadURL = uploadTask.snapshot.downloadURL;
+        console.log("upload complete: " + downloadURL);
+
+        console.log(imageKey);
+        fetch(`${siteObj.globals.webserviceUrl}/broadcastImgUpload`, {
+          method: 'POST',
+          headers: new Headers({
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          }),
+          body: JSON.stringify({
+            imageKey,
+          })
+        })
+          .catch(err => {
+            console.log(err);
+          });
+      });
     }
   };
 
@@ -753,6 +1163,7 @@ var siteObj = siteObj ? siteObj : {};
     },
     getImageUrl(imageId, fileType) {
       const self = this;
+      const storageRef = firebase.storage().ref();
 
       if (!imageId || !fileType) {
         return;
@@ -769,6 +1180,41 @@ var siteObj = siteObj ? siteObj : {};
           .catch(err => {
             console.log(err);
             reject(err);
+          });
+      });
+    },
+    getGroupInfo(groupId) {
+      const self = this;
+
+      if (!groupId) {
+        return;
+      }
+
+      return new Promise(function(resolve, reject) {
+
+        fetch(`${siteObj.globals.webserviceUrl}/getGroupInfo`, {
+          method: 'POST',
+          headers: new Headers({
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          }),
+          body: JSON.stringify({
+            groupId
+          })
+        })
+          .catch(err => {
+            console.log(err);
+            reject(err);
+          })
+          .then(res => {
+            res.json()
+              .catch(err => {
+                console.log(err);
+                reject(err);
+              })
+              .then(resJson => {
+                resolve(resJson.data);
+              });
           });
       });
     }
@@ -788,9 +1234,12 @@ var siteObj = siteObj ? siteObj : {};
 
       // Connection opened
       self.socket.addEventListener('open', function (event) {
+        console.log('socket open');
 
         // Listen for messages
         self.socket.onmessage = function (event) {
+          console.log('socket message');
+          console.log(event);
           
           // arbitrary delay as I seemed to be getting hammered with pointless updates (probably doing something wrong)
           if (event.timeStamp - self.mssgTime < 100) {
@@ -803,10 +1252,11 @@ var siteObj = siteObj ? siteObj : {};
             jsonData = JSON.parse(event.data);
 
             if (jsonData.update === 'imageUpdated') {
-              siteObj.showGroup.updateModalImg(jsonData);
+              // siteObj.showGroup.updateModalImg(jsonData);
             }
 
             if (jsonData.update === 'new image') {
+              console.log(jsonData);
               self.findNewImages(jsonData);
             }
           } catch(err) {
@@ -844,17 +1294,21 @@ var siteObj = siteObj ? siteObj : {};
         return;
       }
 
-      const existingImages = siteObj.showGroup.groupImages;
-      if (!existingImages) {
-        return;
-      }
-
+      
       for (const item in imagesObject) {
+        // const existingImages = Object.keys(siteObj.getGroupInfo.groupImages).length;
+        const existingImages = siteObj.getGroupInfo.groupImages;
         const imageId = item;
         const imageObject = imagesObject[imageId];
-        
-        if (!existingImages[item]) {
-          siteObj.showGroup.addSingleImage(imageId, imageObject);
+
+        if (imageId !== 'update') {
+          // if (existingImages < 1) {
+          //   siteObj.getGroupInfo.groupImages[imageId] = imageObject;
+          // }
+
+          if (!existingImages[item]) {
+            siteObj.getGroupInfo.addSingleImage(imageId, imageObject);
+          }
         }
       }
     }
@@ -956,5 +1410,6 @@ var siteObj = siteObj ? siteObj : {};
   siteObj.copyToClipboard.init();
   siteObj.utilities.checkUserAgent();
   siteObj.showGroups.init();
+  siteObj.uploadImg.init();
   siteObj.websocket.init();
 }());
