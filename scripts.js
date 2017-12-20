@@ -13,6 +13,8 @@ var siteObj = siteObj ? siteObj : {};
       storageBucket: "photogroups-4c0ba.appspot.com",
       messagingSenderId: "959482757186"
     },
+    _Html: document.querySelector('html'),
+    webserviceUrl: 'http://photogroups.192.168.0.3.xip.io',
     validationErrorClass: 'validation-errors',
     loggedInEvents() {
       const self = this;
@@ -61,7 +63,7 @@ var siteObj = siteObj ? siteObj : {};
     associateImgToUser(imageData, imageKey) {
       const self = this;
 
-      fetch('http://127.0.0.1:4000/ImgToUser', {
+      fetch(`${siteObj.globals.webserviceUrl}:4000/ImgToUser`, {
         method: 'POST',
         headers: new Headers({
           'Content-Type': 'application/json',
@@ -85,7 +87,7 @@ var siteObj = siteObj ? siteObj : {};
     associateImgToGroup(imageData, imageKey) {
       const self = this;
 
-      fetch('http://127.0.0.1:4000/ImgToGroup', {
+      fetch(`${siteObj.globals.webserviceUrl}:4000/ImgToGroup`, {
         method: 'POST',
         headers: new Headers({
           'Content-Type': 'application/json',
@@ -109,7 +111,7 @@ var siteObj = siteObj ? siteObj : {};
     associateGroupToUser(userId, groupId, groupName) {
       const self = this;
 
-      fetch('http://127.0.0.1:4000/GroupToUser', {
+      fetch(`${siteObj.globals.webserviceUrl}:4000/GroupToUser`, {
         method: 'POST',
         headers: new Headers({
           'Content-Type': 'application/json',
@@ -229,7 +231,7 @@ var siteObj = siteObj ? siteObj : {};
         return;
       }
 
-      fetch('http://127.0.0.1:4000/addGroup', {
+      fetch(`${siteObj.globals.webserviceUrl}:4000/addGroup`, {
         method: 'POST',
         headers: new Headers({
           'Content-Type': 'application/json',
@@ -557,7 +559,7 @@ var siteObj = siteObj ? siteObj : {};
         return;
       }
 
-      fetch('http://127.0.0.1:4000/addUser', {
+      fetch(`${siteObj.globals.webserviceUrl}:4000/addUser`, {
         method: 'POST',
         headers: new Headers({
           'Content-Type': 'application/json',
@@ -642,10 +644,52 @@ var siteObj = siteObj ? siteObj : {};
     }
   };
 
+  siteObj.utilities = {
+    getUrlParams(parameter) {
+      const self = this;
+      let queryString = window.location.search;
+
+      if (queryString !== undefined) {
+        queryString = window.location.search.replace('?', '');
+
+        let params = {},
+          queryStringArray = queryString.split('&');
+
+        for (const index in queryStringArray) {
+          const query = queryStringArray[index].split('=');
+
+          params[decodeURIComponent(query[0])] = decodeURIComponent(query[1]);
+        }
+
+        if (parameter) {
+          return params[parameter];
+        } else {
+          return params;
+        }
+      }
+    },
+    checkUserAgent() {
+      const self = this;
+      const isAndroid = navigator.userAgent.match(/(Android)/) ? true : false;
+      const isIpad = navigator.userAgent.match(/iPad/i) ? true : false;
+      const isIphone = navigator.userAgent.match(/iPhone/i) ? true : false;
+      const isIos = isIpad || isIphone ? true : false;
+      
+      if (isAndroid) {
+        siteObj.globals._Html.classList.add('android');
+      }
+
+      if (isIos) {
+        siteObj.globals._Html.classList.add('ios');
+      }
+    },
+  };
+
   //  init
   siteObj.menu.init();
   siteObj.userActions.init();
   siteObj.createGroup.init();
   siteObj.copyToClipboard.init();
+  siteObj.utilities.checkUserAgent();
   
 }());

@@ -270,7 +270,7 @@ app.get('/test', function (req, res) {
 
 
 // START *** Use Express to listen to port
-app.listen(4000, '127.0.0.1', function () {
+app.listen(4000, 'http://photogroups.192.168.0.3.xip.io', function () {
   firebase.initFirebase();
   console.log('init');
 });
