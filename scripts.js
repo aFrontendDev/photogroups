@@ -456,6 +456,15 @@ var siteObj = siteObj ? siteObj : {};
     _Group: null,
     _GroupName: null,
     _GroupUserCount: null,
+    _LikeAction: null,
+    _CommentInput: null,
+    _CommentAction: null,
+    _CommentForm: null,
+    activeClass: 'group-active',
+    groupImages: null,
+    groupName: null,
+    groupId: null,
+    addLikeClass: 'like--add',
     init(groupId) {
       const self = this;
 
@@ -471,6 +480,7 @@ var siteObj = siteObj ? siteObj : {};
       self._GroupName = document.querySelector('.group__title');
       self._Group = document.querySelector('.group');
       self._GroupUserCount = document.querySelector('.group__users');
+      self.groupId = groupId;
 
       self.getGroupData(groupId);
     },
@@ -549,7 +559,7 @@ var siteObj = siteObj ? siteObj : {};
           siteObj.getInfo.getImageUrl(image, fileType)
             .then(res => {
               self.addImage(image, res, _Fig);
-              // self.bindImgOpenEvent(_Fig);
+              self.bindImgOpenEvent(_Fig);
             })
             .catch(err => {
               console.log(err);
@@ -594,6 +604,8 @@ var siteObj = siteObj ? siteObj : {};
       const fileType = imageObj.fileType;
       const _Fig = document.createElement('figure');
       _Fig.classList.add('image-grid__figure');
+      const svgTemplate = '<div class="image-grid__figure-target"></div><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M5 8.5c0-.828.672-1.5 1.5-1.5s1.5.672 1.5 1.5c0 .829-.672 1.5-1.5 1.5s-1.5-.671-1.5-1.5zm9 .5l-2.519 4-2.481-1.96-4 5.96h14l-5-8zm8-4v14h-20v-14h20zm2-2h-24v18h24v-18z"/></svg>';
+      _Fig.innerHTML = svgTemplate;
 
       if (!fileType) {
         return;
@@ -605,12 +617,325 @@ var siteObj = siteObj ? siteObj : {};
           console.log(res);
           // we have the image so now we'll update our object of images;
           self.addImage(imageId, res, _Fig);
-          // self.bindImgOpenEvent(_Fig);
+          self.bindImgOpenEvent(_Fig);
           self.groupImages[imageId] = imageObj;
         })
         .catch(err => {
           console.log(err);
         });
+    },
+    bindImgOpenEvent(_Fig) {
+      const self = this;
+
+      if (!_Fig) {
+        return;
+      }
+
+      const _Action = _Fig.querySelector('.image-grid__action');
+      if (!_Action) {
+        return;
+      }
+
+      _Action.addEventListener('click', self.actionHandler);
+    },
+    actionHandler(e) {
+      const self = siteObj.getGroupInfo;
+      e.preventDefault();
+
+      const dataImgId = this.getAttribute('data-image-id');
+      if (!dataImgId) {
+        return;
+      }
+
+      const imageData = siteObj.getGroupInfo.groupImages[dataImgId];
+      if (!imageData) {
+        return;
+      }
+
+      const imageSrc = this.getAttribute('href');
+
+      self.openImgModal(imageData, imageSrc, dataImgId);
+    },
+    bindModalClose() {
+      const self = this;
+
+      if (!self._Modal) {
+        return;
+      }
+
+      if (self._ModalCloseAction) {
+        // we already have it bound so ignore
+        return;
+      }
+
+      self._ModalCloseAction = self._Modal.querySelector('.modal-close-action');
+      if (!self._ModalCloseAction) {
+        return;
+      }
+
+      self._ModalCloseAction.addEventListener('click', self.modalCloseHandler);
+    },
+    modalCloseHandler(e) {
+      const self = siteObj.getGroupInfo;
+      
+      const _ModalContent = document.querySelector('.modal__content');
+      document.body.classList.remove('modal-in');
+      document.body.classList.remove('overlay-in');
+      _ModalContent.innerHTML = '';
+    },
+    openImgModal(imageData, imageSrc, dataImgId) {
+      const self = this;
+
+      if (!imageData || !imageSrc || !dataImgId) {
+        return;
+      }
+
+      if (!self._Modal) {
+        const _Modal = document.querySelector('.modal');
+        if (_Modal) {
+          self._Modal = _Modal;
+        } else {
+          console.log('no modal on page');
+          return;
+        }
+      }
+
+      const _ModalContent = self._Modal.querySelector('.modal__content');
+      if (!_ModalContent) {
+        return;
+      }
+
+      const title = imageData.imageName;
+      const added = imageData.dateTimeAdded;
+      const userName = imageData.userName ? imageData.userName : 'anon';
+      const comments = imageData.comments ? imageData.comments : null;
+      const commentsArray = [];
+      let likes = 0;
+      let userLikes = false;
+
+      if (comments) {
+        for (const comment in comments) {
+          commentsArray.push({[comment]: comments[comment]});
+        }
+        console.log(commentsArray);
+      }
+
+      if (imageData.likes) {
+        likes = Object.keys(imageData.likes).length;
+        userLikes = imageData.likes[siteObj.globals.user.uid] ? true : false;
+      }
+
+      const addLikeClass = userLikes ? '' : self.addLikeClass;
+      const addLikeText = userLikes ? 'remove like' : 'like';
+
+      const imageTemplate = `
+        <section class="image-large" data-image-id="${dataImgId}" data-image-group-id="${self.groupId}">
+          <header class="image-large__header">
+            <h3 class="image-large__title">${title}</h3>
+            <p class="image-large__user">Uploaded by: ${userName} - ${added}</p>
+            <a href="${imageSrc}" target="_blank" rel="noopener nofollow noreferrer">Open image in new tab</a>
+          </header>
+          <figure class="image-large__img">
+            <img src="${imageSrc}" alt="${title}" />
+          </figure>
+          <div class="likes">
+            <p>Likes: <span class="likes__amount">${likes}</span></p>
+            <button class="like__btn like__action ${addLikeClass}">
+              <span class="like-text-add">Like</span>
+              <span class="like-text-remove">Remove Like</span>
+            </button>
+          </div>
+          <div class="comments">
+            ${
+              commentsArray.map(thisComment => {
+                const comment = thisComment[Object.keys(thisComment)];
+                const cleanText = DOMPurify.sanitize(comment.comment);
+                return(
+                `<div class="comment">
+                  <p class="comment__text">${cleanText}</p>
+                  <span class="comment__name">- ${comment.author}</span>
+                  <span class="comment__added">- ${comment.dateTimeAdded}</span>
+                </div>`);
+              }).join('')
+            }
+          </div>
+          <div class="comments__add">
+            <form autocomplete="off" class="comments__form">
+              <label for="comment-input">Add a comment:</label>
+              <input name="comment-input" type="text" placeholder="e.g. can't believe you were so wasted" class="comments__input" />
+              <button class="comments__btn comments__action-add">Add</button>
+            </form>
+          </div>
+        </section>
+      `;
+
+      _ModalContent.innerHTML = imageTemplate;
+      document.body.classList.add('modal-in');
+      document.body.classList.add('overlay-in');
+      self.bindModalClose();
+      self.bindImageEvents();
+      siteObj.websocket.watchGroupImage(self.groupId, dataImgId);
+    },
+    addSingleComment(commentId, newComment) {
+      const self = this;
+
+      if (!commentId || !newComment) {
+        return;
+      }
+      
+      const _Comments = document.querySelector('.comments');
+      if (!_Comments) {
+        return;
+      }
+
+      const cleanText = DOMPurify.sanitize(newComment.comment);
+
+      const _Comment = document.createElement('div');
+      _Comment.classList.add("comment");
+
+      const commentTemplate = `
+        <p class="comment__text">${cleanText}</p>
+        <span class="comment__name">- ${newComment.author}</span>
+        <span class="comment__added">- ${newComment.dateTimeAdded}</span>
+      `;
+
+      _Comment.innerHTML = commentTemplate;
+      _Comments.append(_Comment);
+    },
+    bindImageEvents() {
+      const self = this;
+
+      self._LikeAction = null;
+      self._LikeAction = document.querySelector('.like__action');
+      if (self._LikeAction) {
+        self._LikeAction.addEventListener('click', self.likeHandler);
+      }
+
+      self._CommentForm = null;
+      self._CommentForm = document.querySelector('.comments__form');
+      if (self._CommentForm) {
+        self._CommentForm.addEventListener('submit', self.commentSubmitHandler);
+      }
+    },
+    likeHandler(e) {
+      const self = siteObj.getGroupInfo;
+
+      const userId = siteObj.globals.user.uid;
+      const _ImageContainer = document.querySelector('.image-large');
+      const imageId = _ImageContainer.getAttribute('data-image-id');
+      const groupId = _ImageContainer.getAttribute('data-image-group-id');
+
+      if (!imageId || !userId || !groupId) {
+        return;
+      }
+
+      const isAddLike = this.classList.contains(self.addLikeClass);
+
+      if (isAddLike) {
+        this.classList.remove(self.addLikeClass);
+      } else {
+        this.classList.add(self.addLikeClass);
+      }
+
+      siteObj.imageInteractions.updateLikes(userId, imageId, groupId, isAddLike);
+    },
+    commentSubmitHandler(e) {
+      const self = siteObj.getGroupInfo;
+      e.preventDefault();
+
+      const _Input = this.querySelector('.comments__input');
+      const inputVal = _Input.value;
+      if (!inputVal) {
+        return;
+      }
+
+      const _ImageContainer = document.querySelector('.image-large');
+      const dataImageId = _ImageContainer.getAttribute('data-image-id');
+      const dataGroupId = _ImageContainer.getAttribute('data-image-group-id');
+      const userId = siteObj.globals.user.uid;
+      const author = siteObj.globals.user.displayName;
+
+      _Input.value = '';
+      self.uploadComment(dataGroupId, dataImageId, userId, inputVal, author);
+    },
+    uploadComment(groupId, imageId, userId, comment, author) {
+      const self = this;
+
+      if (!groupId || !imageId || !userId || !comment) {
+        return;
+      }
+
+      fetch(`${siteObj.globals.webserviceUrl}/uploadComment`, {
+        method: 'POST',
+        headers: new Headers({
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        }),
+        body: JSON.stringify({
+          groupId,
+          imageId,
+          userId,
+          comment,
+          author
+        })
+      })
+        .then(res => {
+          res.json()
+            .then(resJson => {
+              console.log(resJson);
+            })
+            .catch(err => {
+              console.log(err);
+            })
+        })
+        .catch(err => {
+          console.log(err);
+        });
+    },
+    updateModalImg(data) {
+      const self = this;
+      const _ImageContainer = document.querySelector('.image-large');
+      if (!_ImageContainer) {
+        return;
+      }
+
+      const dataImageId = _ImageContainer.getAttribute('data-image-id');
+      if (dataImageId !== data.imageId) {
+        return;
+      }
+      const existingImageData = self.groupImages[dataImageId];
+      self.groupImages[dataImageId] = data;
+
+      const _Likes = _ImageContainer.querySelector('.likes__amount');
+      if (data.likes === 0) {
+        _Likes.textContent = '0';
+      } else {
+        const likesAmount = Object.keys(data.likes).length;
+        _Likes.textContent = likesAmount.toString();
+      }
+
+      if (data.comments) {
+        const existingCommentsData = existingImageData.comments;
+        if (!existingCommentsData) {
+          // add comment from new data
+          Object.keys(data.comments).map(commentId => {
+            self.addSingleComment(commentId, data.comments[commentId]);
+          });
+          return;
+        }
+
+        // check for difference between existing comments and new data
+        for (const commentId in data.comments) {
+          console.log(commentId);
+          
+          if (!existingCommentsData[commentId]) {
+            const newComment = data.comments[commentId];
+            console.log('new comment');
+            console.log(newComment);
+            self.addSingleComment(commentId, newComment);
+          }
+        }
+      }
     }
   };
 
@@ -727,7 +1052,8 @@ var siteObj = siteObj ? siteObj : {};
         file,
         fileType: fileTypeSplit[1],
         groupId: group,
-        userId: siteObj.globals.user.uid
+        userId: siteObj.globals.user.uid,
+        userName: siteObj.globals.user.displayName
       };
 
       // update DB entries and then when done actually upload the image to the storage db with relevant meta data
@@ -773,10 +1099,11 @@ var siteObj = siteObj ? siteObj : {};
       const storageRef = firebase.storage().ref();
 
       const metadata = {
-        contentType: imageData.fileType,
+        contentType: imageData.file.type,
         customMetadata: {
           relatedKey: imageKey,
           userId: imageData.userId,
+          userName: imageData.userName,
           imageName: imageData.name,
           groupId: imageData.groupId
         }
@@ -1325,7 +1652,7 @@ var siteObj = siteObj ? siteObj : {};
             jsonData = JSON.parse(event.data);
 
             if (jsonData.update === 'imageUpdated') {
-              // siteObj.showGroup.updateModalImg(jsonData);
+              siteObj.getGroupInfo.updateModalImg(jsonData);
             }
 
             if (jsonData.update === 'new image') {
@@ -1384,6 +1711,44 @@ var siteObj = siteObj ? siteObj : {};
           }
         }
       }
+    }
+  };
+
+  siteObj.imageInteractions = {
+    updateLikes(userId, imageId, groupId, addLike) {
+      const self = this;
+
+      if (!userId || !imageId || !groupId) {
+        return;
+      }
+
+      fetch(`${siteObj.globals.webserviceUrl}/updateLikes`, {
+        method: 'POST',
+        headers: new Headers({
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        }),
+        body: JSON.stringify({
+          userId,
+          imageId,
+          groupId,
+          addLike
+        })
+      })
+        .catch(err => {
+          console.log(err);
+        })
+        .then(res => {
+          console.log(res);
+
+          res.json()
+            .catch(err => {
+              console.log(err);
+            })
+            .then(resJson => {
+              console.log(resJson);
+            });
+        });
     }
   };
 
