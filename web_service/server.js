@@ -171,6 +171,7 @@ app.post('/getGroups', function(req, res) {
       res.send(response);
     })
     .catch(function (error) {
+      console.log(error);
       res.status(500).send(error);
     });
 });
@@ -269,7 +270,7 @@ app.get('/test', function (req, res) {
 
 
 // START *** Use Express to listen to port
-app.listen(4000, 'localhost', function () {
+app.listen(4000, '127.0.0.1', function () {
   firebase.initFirebase();
   console.log('init');
 });

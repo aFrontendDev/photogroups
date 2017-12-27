@@ -15,10 +15,12 @@ var siteObj = siteObj ? siteObj : {};
     },
     _Html: document.querySelector('html'),
     // webserviceUrl: 'http://photogroups.192.168.0.3.xip.io:4000',
-    webserviceUrl: 'http://localhost:4000',
-    groupsUrl: 'http://photogroups.192.168.0.3.xip.io/group',
+    webserviceUrl: 'http://127.0.0.1:4000',
+    // groupsUrl: 'http://photogroups.192.168.0.3.xip.io/group',
+    groupsUrl: 'http://localhost:8080/group.html',
     validationErrorClass: 'validation-errors',
     groupId: null,
+    maxFilesize: 10 * 1024 * 1024,
     loggedInEvents() {
       const self = this;
 
@@ -135,8 +137,6 @@ var siteObj = siteObj ? siteObj : {};
               console.log(err);
             })
             .then(resJson => {
-              console.log('group added');
-              console.log(resJson);
               siteObj.showGroups.getGroups();
             });
         })
@@ -154,7 +154,7 @@ var siteObj = siteObj ? siteObj : {};
     _CloseAction: null,
     _CreateForm: null,
     _Link: null,
-    addGroupUrl: 'http://localhost:8080/group.html',
+    addGroupUrl: siteObj.globals.groupsUrl,
     init() {
       const self = this;
 
@@ -165,7 +165,7 @@ var siteObj = siteObj ? siteObj : {};
         return;
       }
 
-      self._Link = document.querySelector('.create-group__link');
+      self._Link = document.querySelector('.create-group__link-input');
       self.bindEvents();
     },
     bindEvents() {
@@ -281,6 +281,13 @@ var siteObj = siteObj ? siteObj : {};
               if (response.status === 200) {
                 siteObj.associateTables.associateGroupToUser(siteObj.globals.user.uid, key, groupName);
                 const linkUrl = `${self.addGroupUrl}?groupid=${key}`;
+
+                const linkTemplate = `<a href="${linkUrl}">${linkUrl}</a>`;
+                const _LinkContainer = document.querySelector('.create-group__link');
+                if (_LinkContainer) {
+                  _LinkContainer.innerHTML = linkTemplate;
+                }
+
                 self._Link.value = linkUrl;
                 siteObj.shareGroup.populateLinks(linkUrl);
                 document.body.classList.add('group-created');
@@ -541,7 +548,7 @@ var siteObj = siteObj ? siteObj : {};
             .then(res => {
               // console.log(res);
               self.addImage(image, res, _Fig);
-              self.bindImgOpenEvent(_Fig);
+              // self.bindImgOpenEvent(_Fig);
             })
             .catch(err => {
               console.log(err);
@@ -597,6 +604,10 @@ var siteObj = siteObj ? siteObj : {};
   siteObj.uploadImg = {
     _Upload: null,
     _UploadForm: null,
+    _ModalOpenAction: null,
+    _ModalCloseAction: null,
+    modalInClass: 'image-upload-in',
+    modalShowClass: 'image-upload-show',
     init() {
       const self = this;
 
@@ -606,10 +617,34 @@ var siteObj = siteObj ? siteObj : {};
     bindEvents() {
       const self = this;
 
+      self._ModalOpenAction = document.querySelector('.image-upload-open-action');
+      if (self._ModalOpenAction) {
+        self._ModalOpenAction.addEventListener('click', self.openModal);
+      }
+
+      self._ModalCloseAction = document.querySelector('.image-upload__close-action');
+      if (self._ModalCloseAction) {
+        self._ModalCloseAction.addEventListener('click', self.closeModal);
+      }
+
       self._UploadForm = document.querySelector('.image-upload__form');
       if (self._UploadForm) {
         self._UploadForm.addEventListener('submit', self.uploadEvent);
       }
+    },
+    openModal(e) {
+      e.preventDefault();
+      const self = siteObj.uploadImg;
+
+      document.body.classList.add(self.modalInClass);
+      document.body.classList.add(self.modalShowClass);
+    },
+    closeModal(e) {
+      e.preventDefault();
+      const self = siteObj.uploadImg;
+
+      document.body.classList.remove(self.modalShowClass);
+      document.body.classList.remove(self.modalInClass);
     },
     uploadEvent(e) {
       e.preventDefault();
@@ -623,9 +658,15 @@ var siteObj = siteObj ? siteObj : {};
       const group = siteObj.globals.groupId ? siteObj.globals.groupId : null;
       const file = _FileInput.files[0];
       const fileTypeSplit = file.type.split('/');
+      const fileSize = file.size;
       
       if (fileTypeSplit[0] !== 'image') {
         // TODO add message to user
+        return;
+      }
+
+      if (fileSize > siteObj.globals.maxFilesize) {
+        console.log('file too big');
         return;
       }
 
@@ -681,11 +722,10 @@ var siteObj = siteObj ? siteObj : {};
     },
     uploadImg(imageData, imageKey) {
       const self = this;
-      const file = imageData.file;
       const storageRef = firebase.storage().ref();
 
       const metadata = {
-        contentType: file.type,
+        contentType: imageData.fileType,
         customMetadata: {
           relatedKey: imageKey,
           userId: imageData.userId,
@@ -694,14 +734,7 @@ var siteObj = siteObj ? siteObj : {};
         }
       };
 
-      const fileTypeSplit = file.type.split('/');
-      if (fileTypeSplit[0] !== 'image') {
-        // TODO add message to user
-        return;
-      }
-      const fileType = fileTypeSplit[1];
-      const uploadTask = storageRef.child(`images/${imageKey}.${fileType}`).put(file, metadata);
-
+      const uploadTask = storageRef.child(`images/${imageKey}.${imageData.fileType}`).put(imageData.file, metadata);
       // Listen for state changes, errors, and completion of the upload.
       uploadTask.on(firebase.storage.TaskEvent.STATE_CHANGED, // or 'state_changed'
         function(snapshot) {

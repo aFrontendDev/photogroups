@@ -566,9 +566,9 @@ module.exports = {
           const key = database.getKey();
 
           if (!errored) {
-            resolve({"mssg":'success', key});
+            resolve({'mssg':'success', key});
           }
         });
     });
-  }
+  },
 };
