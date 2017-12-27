@@ -23,6 +23,7 @@
   --ggw: 20px;
   --header-height: 65px;
   --header-height-ss: 100px;
+  --max-width: 1440px;
 
   /* colours */
   --color-a: #000;
@@ -80,7 +81,9 @@ body {
 }
 
 body.user-menu-in,
-body.menu-in {
+body.menu-in,
+body.image-upload-in,
+body.create-group-in {
   overflow: hidden;
 }
 
@@ -202,6 +205,7 @@ label {
 fieldset {
   border: none;
   padding-left: 0;
+  padding-right: 0;
   margin-bottom: var(--vr);
 }
 
@@ -479,6 +483,13 @@ p {
 .helper {
   font-size: 14px;
   margin: var(--vr) 0;
+}
+
+/* objects */
+.main {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 var(--ggw);
 }
 
 /* Components */
@@ -870,6 +881,7 @@ p {
 
 .create-group__close-btn {
   position: absolute;
+  display: flex;
   right: calc(var(--ggw) / 2);
   top: var(--vr);
   color: #fff;
@@ -1027,7 +1039,6 @@ p {
   }
 }
 
-
 .image-upload__close-btn {
   position: absolute;
   display: flex;
@@ -1055,3 +1066,83 @@ p {
   fill: var(--color-d);
 }
 
+.image-upload__progress {
+  display: flex;
+  justify-content: space-between;
+}
+
+.image-upload__progress-bar {
+  display: block;
+  flex: 1;
+  margin-right: var(--ggw);
+}
+
+.image-upload__progress-num {
+  display: block;
+}
+
+/* image grid */
+.image-grid__images {
+  display: block;
+  width: 100%;
+}
+
+@media (min-width: 600px) {
+  .image-grid__images {
+    display: grid;
+    grid-template-columns: 49.5% 49.5%;
+    grid-gap: 1%;
+  }
+}
+
+@media (min-width: 760px) {
+  .image-grid__images {
+    grid-template-columns: 32% 32% 32%;
+    grid-gap: 2%;
+  }
+}
+
+@media (min-width: 1000px) {
+  .image-grid__images {
+    grid-template-columns: 24% 24% 24% 24%;
+    grid-gap: 1.25%;
+  }
+}
+
+.image-grid__figure {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  margin-bottom: var(--vr);
+  /* height: 200px; */
+  background-color: var(--color-d);
+  padding: var(--vr) calc(var(--ggw) / 2);
+}
+
+.image-grid__figure img {
+  /* object-fit: contain;
+  height: 100%;
+  width: 100%; */
+}
+
+.image-grid__figure svg {
+  fill: #fff;
+  height: 100%;
+  width: 100%;
+}
+
+.image-grid__figure .image-grid__figure-target {
+  height: 0;
+  width: 0;
+  overflow: hidden;
+}
+
+.image-grid__figure.image-in .image-grid__figure-target {
+  height: auto;
+  width: 100%;
+}
+
+.image-grid__figure.image-in svg {
+  display: none;
+}

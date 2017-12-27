@@ -241,6 +241,12 @@
         <button class="btn btn--style-a image-upload__action image-upload__btn">
           <span>Upload</span>
         </button>
+        <div class="image-upload__progress">
+          <progress class="image-upload__progress-bar" value="0" max="100"></progress>
+          <span class="image-upload__progress-num"></span>
+        </div>
+        <p class="image-upload__error"></p>
+        <div class="image-upload__preview"></div>
 
         <span class="spinner" role="presentation" aria-hidden="true"></span>
         <span class="spinner-overlay" role="presentation" aria-hidden="true"></span>
@@ -250,6 +256,7 @@
     <script src="./firebase.js"></script>
     <script src="https://apis.google.com/js/platform.js" async defer></script>
 
+    <script src="./imagesloaded.pkgd.min.js" defer></script>
     <script src="./purify.min.js" defer></script>
     <script src="./scripts.js" defer></script>
   </body>

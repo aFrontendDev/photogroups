@@ -540,13 +540,14 @@ var siteObj = siteObj ? siteObj : {};
         const fileType = images[image].fileType;
         const _Fig = document.createElement('figure');
         _Fig.classList.add('image-grid__figure');
+        const svgTemplate = '<div class="image-grid__figure-target"></div><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M5 8.5c0-.828.672-1.5 1.5-1.5s1.5.672 1.5 1.5c0 .829-.672 1.5-1.5 1.5s-1.5-.671-1.5-1.5zm9 .5l-2.519 4-2.481-1.96-4 5.96h14l-5-8zm8-4v14h-20v-14h20zm2-2h-24v18h24v-18z"/></svg>';
+        _Fig.innerHTML = svgTemplate;
 
         if (fileType) {
           self._ImagesContainer.append(_Fig);
 
           siteObj.getInfo.getImageUrl(image, fileType)
             .then(res => {
-              // console.log(res);
               self.addImage(image, res, _Fig);
               // self.bindImgOpenEvent(_Fig);
             })
@@ -563,13 +564,25 @@ var siteObj = siteObj ? siteObj : {};
         return;
       }
 
+      const _ImageTarget = _Target.querySelector('.image-grid__figure-target');
+
       const imageTemplate = `
         <a href="${url}" data-image-id="${image}" class="image-grid__link image-grid__action" target="_blank" rel="noopener nofollow noreferrer">
           <img class="image-grid__image" src="${url}" alt="uploaded image" />
         </a>
       `;
 
-      _Target.innerHTML = imageTemplate;
+
+      if (_ImageTarget) {
+        _ImageTarget.innerHTML = imageTemplate;
+      } else {
+        _Target.innerHTML = imageTemplate;
+      }
+
+      imagesLoaded(_Target, () => {
+        console.log('done');
+        _Target.classList.add('image-in');
+      });
     },
     addSingleImage(imageId, imageObj) {
       const self = this;
@@ -606,12 +619,25 @@ var siteObj = siteObj ? siteObj : {};
     _UploadForm: null,
     _ModalOpenAction: null,
     _ModalCloseAction: null,
+    _Preview: null,
+    _FileInput: null,
+    _ProgressBar: null,
+    _ProgressNum: null,
     modalInClass: 'image-upload-in',
     modalShowClass: 'image-upload-show',
+    fileReader: null,
     init() {
       const self = this;
 
       self._Upload = document.querySelector('.image-upload');
+      if (!self._Upload) {
+        return;
+      }
+
+      self.fileReader = new FileReader;
+      self._Preview = document.querySelector('.image-upload__preview');
+      self._ProgressBar = document.querySelector('.image-upload__progress-bar');
+      self._ProgressNum = document.querySelector('.image-upload__progress-num');
       self.bindEvents();
     },
     bindEvents() {
@@ -631,16 +657,38 @@ var siteObj = siteObj ? siteObj : {};
       if (self._UploadForm) {
         self._UploadForm.addEventListener('submit', self.uploadEvent);
       }
+
+      if (self._Preview) {
+        self._FileInput = document.querySelector('input[name="upload-input"]');
+        if (self._FileInput) {
+          self._FileInput.addEventListener('change', function(){
+            const file = this.files ? this.files[0] : null;
+            if (file) {
+              // trigger preview image
+              self.fileReader.readAsDataURL(file);
+            }
+          });
+        }
+
+        self.fileReader.addEventListener('load', self.showPreview);
+      }
     },
-    openModal(e) {
-      e.preventDefault();
+    showPreview(e) {
+      const self = siteObj.uploadImg;
+
+      const image = e.target.result;
+      if (image) {
+        const imageTemplate = `<img src="${image}" class="image-upload__preview-img" alt="preview image" />`;
+        self._Preview.innerHTML = imageTemplate;
+      }
+    },
+    openModal() {
       const self = siteObj.uploadImg;
 
       document.body.classList.add(self.modalInClass);
       document.body.classList.add(self.modalShowClass);
     },
-    closeModal(e) {
-      e.preventDefault();
+    closeModal() {
       const self = siteObj.uploadImg;
 
       document.body.classList.remove(self.modalShowClass);
@@ -738,33 +786,25 @@ var siteObj = siteObj ? siteObj : {};
       // Listen for state changes, errors, and completion of the upload.
       uploadTask.on(firebase.storage.TaskEvent.STATE_CHANGED, // or 'state_changed'
         function(snapshot) {
-          // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
           let progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          console.log('Upload is ' + progress + '% done');
-          switch (snapshot.state) {
-            case firebase.storage.TaskState.PAUSED: // or 'paused'
-              // console.log('Upload is paused');
-              break;
-            case firebase.storage.TaskState.RUNNING: // or 'running'
-              // console.log('Upload is running');
-              break;
+
+          if (self._ProgressBar) {
+            self._ProgressBar.value = progress;
+          }
+
+          if (self._ProgressNum) {
+            self._ProgressNum.textContent = `${progress}%`;
           }
         }, function(error) {
-        switch (error.code) {
-          case 'storage/unauthorized':
-            console.log("User doesn't have permission to access the object");
-            break;
-          case 'storage/canceled':
-            console.log("User canceled the upload");
-            break;
-          case 'storage/unknown':
-            console.log("Unknown error occurred, inspect error.serverResponse");
-            break;
-        }
+          console.log(error);
+          const _Error = document.querySelector('.image-upload__error');
+          if (_Error) {
+            _Error.textContent = error.code;
+          }
       }, function() {
         // Upload completed successfully, now we can get the download URL
         const downloadURL = uploadTask.snapshot.downloadURL;
-        console.log("upload complete: " + downloadURL);
+        self.closeModal();
 
         console.log(imageKey);
         fetch(`${siteObj.globals.webserviceUrl}/broadcastImgUpload`, {
