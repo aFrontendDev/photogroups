@@ -420,6 +420,8 @@ var siteObj = siteObj ? siteObj : {};
 
                       if (resJson.userexists) {
                         _JoinGroup.innerHTML = '';
+                        _JoinGroup.classList.remove('loading');
+                        _JoinGroup.classList.add('join-group--success');
 
                         // Show group images
                         siteObj.getGroupInfo.init(groupId);

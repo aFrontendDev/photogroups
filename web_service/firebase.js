@@ -483,11 +483,6 @@ module.exports = {
 
   updateLike(userId, imageId, groupId, addLike) {
     let imageEntryExists = false;
-    console.log('update Like - firebase');
-    console.log(userId);
-    console.log(imageId);
-    console.log(groupId);
-    console.log(addLike);
     
     return new Promise(function(resolve, reject) {
 
