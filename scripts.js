@@ -513,6 +513,7 @@ var siteObj = siteObj ? siteObj : {};
           }
 
           if (res.Images) {
+            console.log(res.Images);
             self.groupImages = res.Images;
             self.getImages(groupId, res.Images);
           } else {
@@ -707,6 +708,8 @@ var siteObj = siteObj ? siteObj : {};
         return;
       }
 
+      console.log(imageData);
+
       const title = imageData.imageName;
       const added = imageData.dateTimeAdded;
       const userName = imageData.userName ? imageData.userName : 'anon';
@@ -733,41 +736,51 @@ var siteObj = siteObj ? siteObj : {};
       const imageTemplate = `
         <section class="image-large" data-image-id="${dataImgId}" data-image-group-id="${self.groupId}">
           <header class="image-large__header">
-            <h3 class="image-large__title">${title}</h3>
-            <p class="image-large__user">Uploaded by: ${userName} - ${added}</p>
-            <a href="${imageSrc}" target="_blank" rel="noopener nofollow noreferrer">Open image in new tab</a>
+            <h3 class="image-large__title title-style-b">${title}</h3>
+            <p class="image-large__user">${userName} - ${added}</p>
+            <a class="image-large__image-link" href="${imageSrc}" target="_blank" rel="noopener nofollow noreferrer">Open image in new tab</a>
           </header>
           <figure class="image-large__img">
             <img src="${imageSrc}" alt="${title}" />
           </figure>
-          <div class="likes">
-            <p>Likes: <span class="likes__amount">${likes}</span></p>
-            <button class="like__btn like__action ${addLikeClass}">
-              <span class="like-text-add">Like</span>
-              <span class="like-text-remove">Remove Like</span>
-            </button>
+
+          <div class="image-large__interactions">
+            <div class="comment-container">
+              <div class="comments">
+                ${
+                  commentsArray.map(thisComment => {
+                    const comment = thisComment[Object.keys(thisComment)];
+                    const cleanText = DOMPurify.sanitize(comment.comment);
+                    return(
+                    `<div class="comment">
+                      <p class="comment__text">
+                        <span class="comment__name">${comment.author}</span>
+                        <span class="comment__text">${cleanText}</span>
+                      </p>
+                      <p class="comment__added">${comment.dateTimeAdded}</p>
+                    </div>`);
+                  }).join('')
+                }
+              </div>
+              <div class="comments__add">
+                <form autocomplete="off" class="comments__form">
+                  <label for="comment-input">Add a comment:</label>
+                  <input name="comment-input" type="text" placeholder="love the picture!" class="comments__input" />
+                  <button class="btn btn--style-d comments__btn comments__action-add">
+                    <span>Add</span>
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            <div class="like">
+              <button class="btn like__btn like__action ${addLikeClass}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M22.351 12l1.649-2.084-2.272-1.403.825-2.513-2.624-.553-.098-2.64-2.655.364-1.009-2.448-2.37 1.237-1.797-1.96-1.797 1.961-2.37-1.237-1.009 2.447-2.655-.363-.098 2.64-2.624.552.825 2.513-2.272 1.403 1.649 2.084-1.649 2.084 2.272 1.403-.825 2.513 2.624.553.098 2.64 2.655-.364 1.009 2.448 2.37-1.237 1.797 1.96 1.797-1.96 2.37 1.237 1.009-2.448 2.655.364.098-2.64 2.624-.553-.825-2.513 2.272-1.403-1.649-2.084zm-6.043-.206c.418.056.63.328.63.61 0 .323-.277.66-.844.705-.348.027-.434.312-.016.406.351.08.549.326.549.591 0 .314-.279.654-.913.771-.383.07-.421.445-.016.477.344.026.479.146.479.312 0 .466-.826 1.333-2.426 1.333-2.501.001-3.407-1.499-6.751-1.499v-4.964c1.766-.271 3.484-.817 4.344-3.802.239-.831.39-1.734 1.187-1.734 1.188 0 1.297 2.562.844 4.391.656.344 1.875.468 2.489.442.886-.036 1.136.409 1.136.745 0 .505-.416.675-.677.755-.304.094-.444.404-.015.461z"/></svg>
+                <span class="like__amount">${likes}</span>
+              </button>
+            </div>
           </div>
-          <div class="comments">
-            ${
-              commentsArray.map(thisComment => {
-                const comment = thisComment[Object.keys(thisComment)];
-                const cleanText = DOMPurify.sanitize(comment.comment);
-                return(
-                `<div class="comment">
-                  <p class="comment__text">${cleanText}</p>
-                  <span class="comment__name">- ${comment.author}</span>
-                  <span class="comment__added">- ${comment.dateTimeAdded}</span>
-                </div>`);
-              }).join('')
-            }
-          </div>
-          <div class="comments__add">
-            <form autocomplete="off" class="comments__form">
-              <label for="comment-input">Add a comment:</label>
-              <input name="comment-input" type="text" placeholder="e.g. can't believe you were so wasted" class="comments__input" />
-              <button class="comments__btn comments__action-add">Add</button>
-            </form>
-          </div>
+
         </section>
       `;
 
@@ -796,9 +809,11 @@ var siteObj = siteObj ? siteObj : {};
       _Comment.classList.add("comment");
 
       const commentTemplate = `
-        <p class="comment__text">${cleanText}</p>
-        <span class="comment__name">- ${newComment.author}</span>
-        <span class="comment__added">- ${newComment.dateTimeAdded}</span>
+        <p class="comment__text">
+          <span class="comment__name">${newComment.author}</span>
+          <span class="comment__text">${cleanText}</span>
+        </p>
+        <p class="comment__added">${newComment.dateTimeAdded}</p>
       `;
 
       _Comment.innerHTML = commentTemplate;
@@ -906,9 +921,12 @@ var siteObj = siteObj ? siteObj : {};
         return;
       }
       const existingImageData = self.groupImages[dataImageId];
-      self.groupImages[dataImageId] = data;
 
-      const _Likes = _ImageContainer.querySelector('.likes__amount');
+      if (data.likes) {
+        self.groupImages[dataImageId].likes = data.likes;
+      }
+
+      const _Likes = _ImageContainer.querySelector('.like__amount');
       if (data.likes === 0) {
         _Likes.textContent = '0';
       } else {
@@ -937,6 +955,8 @@ var siteObj = siteObj ? siteObj : {};
             self.addSingleComment(commentId, newComment);
           }
         }
+
+        self.groupImages[dataImageId].comments = data.comments;
       }
     }
   };
@@ -1640,8 +1660,8 @@ var siteObj = siteObj ? siteObj : {};
 
         // Listen for messages
         self.socket.onmessage = function (event) {
-          console.log('socket message');
-          console.log(event);
+          // console.log('socket message');
+          // console.log(event);
           
           // arbitrary delay as I seemed to be getting hammered with pointless updates (probably doing something wrong)
           if (event.timeStamp - self.mssgTime < 100) {
