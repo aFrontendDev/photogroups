@@ -759,6 +759,7 @@ p {
   color: #fff;
   transform: translateY(101%);
   opacity: 0;
+  width: auto;
   transition: transform 250ms, opacity 200ms ease-in-out;
 }
 
