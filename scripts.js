@@ -18,6 +18,7 @@ var siteObj = siteObj ? siteObj : {};
     webserviceUrl: 'http://127.0.0.1:4000',
     // groupsUrl: 'http://photogroups.192.168.0.3.xip.io/group',
     groupsUrl: 'http://localhost:8080/group.html',
+    imgCompUrl: 'https://img.gs/jqtzrcgzdh/quality=low/',
     validationErrorClass: 'validation-errors',
     groupId: null,
     maxFilesize: 10 * 1024 * 1024,
@@ -581,7 +582,7 @@ var siteObj = siteObj ? siteObj : {};
 
       const imageTemplate = `
         <a href="${url}" data-image-id="${image}" class="image-grid__link image-grid__action" target="_blank" rel="noopener nofollow noreferrer">
-          <img class="image-grid__image" src="${url}" alt="uploaded image" />
+          <img class="image-grid__image" src="${siteObj.globals.imgCompUrl}${url}" alt="uploaded image" />
         </a>
       `;
 
@@ -741,7 +742,7 @@ var siteObj = siteObj ? siteObj : {};
             <a class="image-large__image-link" href="${imageSrc}" target="_blank" rel="noopener nofollow noreferrer">Open image in new tab</a>
           </header>
           <figure class="image-large__img">
-            <img src="${imageSrc}" alt="${title}" />
+            <img src="${siteObj.globals.imgCompUrl}${imageSrc}" alt="${title}" />
           </figure>
 
           <div class="image-large__interactions">
