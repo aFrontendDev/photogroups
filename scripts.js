@@ -1575,6 +1575,8 @@ var siteObj = siteObj ? siteObj : {};
         _Li.innerHTML = anchorTemplate;
         self._GroupsList.append(_Li);
       }
+
+      self._Groups.classList.add('groups-listing--in')
     }
   }
 
