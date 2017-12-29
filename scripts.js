@@ -207,6 +207,7 @@ var siteObj = siteObj ? siteObj : {};
         _Action.classList.add('btn--disabled');
       }
 
+      siteObj.utilities.addSpinner(_Form);
       _Form.classList.add('form-processing');
       _Form.classList.add('loading');
       _Form.reset();
@@ -278,6 +279,7 @@ var siteObj = siteObj ? siteObj : {};
 
               _Form.classList.remove('form-processing');
               _Form.classList.remove('loading');
+              siteObj.utilities.removeSpinner(_Form);
 
               if (response.status === 200) {
                 siteObj.associateTables.associateGroupToUser(siteObj.globals.user.uid, key, groupName);
@@ -1168,7 +1170,7 @@ var siteObj = siteObj ? siteObj : {};
               const userId = siteObj.globals.user.uid;
 
               if (response.status === 200) {
-                self.uploadImg(imageData, imageKey);
+                self.uploadImg(imageData, imageKey, _Form);
                 siteObj.associateTables.associateImgToUser(imageData, imageKey);
                 siteObj.associateTables.associateImgToGroup(imageData, imageKey);
               }
@@ -1181,7 +1183,7 @@ var siteObj = siteObj ? siteObj : {};
           console.log(err);
         });
     },
-    uploadImg(imageData, imageKey) {
+    uploadImg(imageData, imageKey, _Form) {
       const self = this;
       const storageRef = firebase.storage().ref();
 
@@ -1218,9 +1220,14 @@ var siteObj = siteObj ? siteObj : {};
       }, function() {
         // Upload completed successfully, now we can get the download URL
         const downloadURL = uploadTask.snapshot.downloadURL;
-        self.closeModal();
 
-        // console.log(imageKey);
+        // close and reset modal
+        self.closeModal();
+        _Form.reset();
+        self._ProgressBar.value = 0;
+        self._ProgressNum.textContent = '0';
+        self._Preview.innerHTML = '';
+
         fetch(`${siteObj.globals.webserviceUrl}/broadcastImgUpload`, {
           method: 'POST',
           headers: new Headers({
@@ -1380,6 +1387,7 @@ var siteObj = siteObj ? siteObj : {};
         _Form.classList.add(siteObj.globals.validationErrorClass);
         return;
       }
+      siteObj.utilities.addSpinner(_Form);
       _Form.classList.remove(siteObj.globals.validationErrorClass);
       _Form.classList.add('loading');
 
@@ -1394,21 +1402,25 @@ var siteObj = siteObj ? siteObj : {};
                 .then((user) => {
                   _Form.reset();
                   _Form.classList.remove('loading');
+                  siteObj.utilities.removeSpinner(_Form);
                   document.body.classList.remove(self.menuInClass);
                   self.addUser(user.uid, user.displayName, user.email);
                 })
                 .catch(err => {
                   console.log(err);
+                  siteObj.utilities.removeSpinner(_Form);
                   _Form.classList.remove('loading');
                 });
             })
             .catch(err => {
               console.log(err);
+              siteObj.utilities.removeSpinner(_Form);
               _Form.classList.remove('loading');
             });
         })
         .catch(err => {
           console.log(err);
+          siteObj.utilities.removeSpinner(_Form);
           _Form.classList.remove('loading');
         });
     },
@@ -1928,6 +1940,40 @@ var siteObj = siteObj ? siteObj : {};
         siteObj.globals._Html.classList.add('ios');
       }
     },
+    addSpinner(_Target) {
+      const self = this;
+
+      if (!_Target) {
+        return;
+      }
+
+      const _SpinnerContainer = document.createElement('div');
+      _SpinnerContainer.classList.add('spinner-container');
+
+      const spinnerTemplate = `
+        <span class="spinner" role="presentation" aria-hidden="true"></span>
+        <span class="spinner-overlay" role="presentation" aria-hidden="true"></span>
+      `;
+
+      _SpinnerContainer.innerHTML = spinnerTemplate;
+
+      _Target.append(_SpinnerContainer);
+    },
+    removeSpinner(_Target) {
+      const self = this;
+
+      if (!_Target) {
+        return;
+      }
+
+      const _SpinnerContainer = _Target.querySelector('.spinner-container');
+      if (_SpinnerContainer) {
+        const _Parent = _SpinnerContainer.parentElement;
+        if (_Parent) {
+          _Parent.removeChild(_SpinnerContainer);
+        }
+      }
+    }
   };
 
   //  init

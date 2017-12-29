@@ -612,7 +612,7 @@ p {
 
 .header__title .title {
   color: var(--color-d);
-  margin-top: 3px;
+  margin-top: 9px;
 }
 
 .header__title .title span {
@@ -683,6 +683,10 @@ p {
 
   .header__title {
     margin: 0;
+  }
+
+  .header__title .title {
+    margin-top: 3px;
   }
 
   .header__utils-item {
