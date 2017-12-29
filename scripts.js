@@ -15,7 +15,7 @@ var siteObj = siteObj ? siteObj : {};
     },
     _Html: document.querySelector('html'),
     // webserviceUrl: 'http://photogroups.192.168.0.3.xip.io:4000',
-    webserviceUrl: 'http://138.68.135.21/:4000',
+    webserviceUrl: 'http://138.68.135.21:4000',
     // groupsUrl: 'http://photogroups.192.168.0.3.xip.io/group',
     groupsUrl: './group.html',
     imgCompUrl: 'https://img.gs/jqtzrcgzdh/quality=low/',
