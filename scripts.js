@@ -406,7 +406,8 @@ var siteObj = siteObj ? siteObj : {};
                 }),
                 body: JSON.stringify({
                   groupId,
-                  user: siteObj.globals.user.uid
+                  user: siteObj.globals.user.uid,
+                  userName: siteObj.globals.user.displayName
                 })
               })
                 .then(res => {
@@ -454,7 +455,6 @@ var siteObj = siteObj ? siteObj : {};
   };
 
   siteObj.getGroupInfo = {
-    groupImages: {},
     _ImagesContainer: null,
     _Group: null,
     _GroupName: null,
@@ -463,14 +463,19 @@ var siteObj = siteObj ? siteObj : {};
     _CommentInput: null,
     _CommentAction: null,
     _CommentForm: null,
-    activeClass: 'group-active',
-    groupImages: null,
+    _UsersAction: null,
     groupName: null,
     groupId: null,
+    groupImages: {},
+    groupInfo: null,
+    groupUsers: null,
+    activeClass: 'group-active',
     addLikeClass: 'like--add',
+    userListInClass: 'user-list-in',
+    userListShowClass: 'user-list-show',
     init(groupId) {
       const self = this;
-
+      
       if (!groupId) {
         return;
       }
@@ -482,10 +487,37 @@ var siteObj = siteObj ? siteObj : {};
 
       self._GroupName = document.querySelector('.group__title');
       self._Group = document.querySelector('.group');
-      self._GroupUserCount = document.querySelector('.group__users');
+      self._GroupUserCount = document.querySelector('.group__users-count');
       self.groupId = groupId;
 
       self.getGroupData(groupId);
+      self.bindEvents();
+    },
+    bindEvents() {
+      const self = this;
+
+      self._UsersAction = document.querySelector('.group__users-action');
+      if (self._UsersAction) {
+        self._UsersAction.addEventListener('click', self.userListHandler);
+      }
+    },
+    userListHandler(e) {
+      const self = siteObj.getGroupInfo;
+
+      if (!self._Group) {
+        return;
+      }
+
+      if (self._Group.classList.contains(self.userListInClass)) {
+        self._Group.classList.remove(self.userListShowClass);
+        
+        setTimeout(() => {
+          self._Group.classList.remove(self.userListInClass);
+        }, 300);
+      } else {
+        self._Group.classList.add(self.userListInClass);
+        self._Group.classList.add(self.userListShowClass);
+      }
     },
     getGroupData(groupId) {
       const self = this;
@@ -500,6 +532,7 @@ var siteObj = siteObj ? siteObj : {};
         })
         .then(res => {
           console.log(res);
+          self.groupInfo = res;
 
           if (self._Group) {
             self._Group.classList.add('group--in');
@@ -507,6 +540,8 @@ var siteObj = siteObj ? siteObj : {};
 
           if (res.Users) {
             self.updateUserCount(res.Users);
+            self.groupUsers = res.Users;
+            self.populateUserList();
           }
 
           if (res.groupName) {
@@ -523,6 +558,28 @@ var siteObj = siteObj ? siteObj : {};
             self._ImagesContainer.append(_NoImgs);
           }
         });
+    },
+    populateUserList() {
+      const self = this;
+
+      if (!self.groupUsers || !self._Group) {
+        return;
+      }
+
+      const _UserList = self._Group.querySelector('.user-list');
+      if (!_UserList) {
+        return;
+      }
+      _UserList.innerHTML = '';
+
+      for (const user in self.groupUsers) {
+        const userName = self.groupUsers[user];
+        const _UserItem = document.createElement('li');
+        _UserItem.classList.add('user-list__item');
+        _UserItem.textContent = userName;
+        
+        _UserList.append(_UserItem);
+      }
     },
     addTitle(name) {
       const self = this;

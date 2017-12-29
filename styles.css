@@ -1001,11 +1001,6 @@ p {
   height: auto;
 }
 
-/* input.create-group__link-input {
-  color: var(--color-e);
-  margin-bottom: calc(var(--vr) * 2);
-} */
-
 .create-group__link {
   color: var(--color-e);
   margin-right: var(--ggw);
@@ -1060,25 +1055,109 @@ p {
 .group {
   height: 0;
   overflow: hidden;
-  padding: calc(var(--vr) * 2) calc(var(--ggw) / 2);
-}
-
-@media (min-width: 640px) {
-  .group {
-    padding: calc(var(--vr) * 2) var(--ggw);
-  }
 }
 
 .group.group--in {
   height: auto;
+  padding: calc(var(--vr) * 2) calc(var(--ggw) / 2);
+  overflow: visible;
+}
+
+@media (min-width: 640px) {
+  .group.group--in {
+    padding: calc(var(--vr) * 2) var(--ggw);
+  }
 }
 
 .group__title {
+  float: left;
   font-size: 32px;
   font-weight: 900;
   margin-bottom: 0;
 }
 
+.group__users {
+  position: relative;
+  float: left;
+  clear: both;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  margin-bottom: calc(var(--vr) * 2);
+}
+
+.group__users-count {
+  margin-bottom: 0;
+  margin-left: 5px;
+}
+
+.group .image-upload-open-btn {
+  float: left;
+  clear: both;
+}
+
+@media (min-width: 640px) {
+  .group__users {
+    float: right;
+    clear: none;
+    width: auto;
+  }
+}
+
+.group__users-btn {
+  display: flex;
+  align-items: flex-end;
+  width: auto;
+}
+
+.group__users-list {
+  position: absolute;
+  top: calc(100% + var(--vr));
+  left: 0;
+  right: 0;
+  background-color: var(--color-d);
+  color: #fff;
+  font-weight: 900;
+  border: solid 2px var(--color-a);
+  overflow: hidden;
+  height: 0;
+  z-index: -1;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 200ms, transform 250ms ease-in-out;
+}
+
+@media (min-width: 640px) {
+  .group__users-list {
+    left: auto;
+    text-align: right;
+    max-width: 90vw;
+  }
+}
+
+.user-list-in .group__users-list {
+  z-index: 2;
+  height: auto;
+}
+
+.user-list-show .group__users-list {
+  opacity: 1;
+  transform: none;
+}
+
+.user-list {
+  padding: calc(var(--vr) * 2) calc(var(--ggw) / 2);
+}
+
+
+@media (min-width: 640px) {
+  .user-list__item {
+    white-space: nowrap;
+  }
+}
+
+
+/* join group */
 .join-group {
   position: fixed;
   top: var(--header-height-ss);

@@ -349,7 +349,7 @@ module.exports = {
     });
   },
 
-  joinGroup(user, groupId) {
+  joinGroup(user, groupId, userName) {
     let groupExists = false;
     let groupName = null;
     let userAlreadyRegistered = false;
@@ -363,8 +363,6 @@ module.exports = {
         groupExists = (snapshot.val() !== null) ? true : false;
         groupName = (snapshot.val() && snapshot.val().groupName) || null;
         userAlreadyRegistered = (snapshot.val() && snapshot.child('Users').hasChild(user)) ? true : false;
-        // console.log('userAlreadyRegistered');
-        // console.log(userAlreadyRegistered);
       })
         .then(function(e) {
           let errored = false;
@@ -377,7 +375,7 @@ module.exports = {
           if (groupExists) {
 
             admin.database().ref(`Groups/${groupId}/Users/`).update({
-              [user]: true
+              [user]: userName
             })
               .catch(err => {
                 console.log(err);
@@ -385,7 +383,6 @@ module.exports = {
                 reject(err.message);
               })
               .then(res => {
-                // console.log(res);
                 if (!errored) {
                   resolve({"added user": true, groupName});
                 }

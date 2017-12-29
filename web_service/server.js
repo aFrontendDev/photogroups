@@ -207,9 +207,10 @@ app.post('/getImageInfo', function(req, res) {
 
 app.post('/joinGroup', function(req, res) {
   const user = req.body.user;
+  const userName = req.body.userName;
   const groupId = req.body.groupId;
 
-  firebase.joinGroup(user, groupId)
+  firebase.joinGroup(user, groupId, userName)
     .then(function(response) {
       if (response.userexists) {
         // res.status(304).send(response);
