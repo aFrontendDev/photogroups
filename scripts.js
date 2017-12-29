@@ -531,7 +531,7 @@ var siteObj = siteObj ? siteObj : {};
           console.log(err);
         })
         .then(res => {
-          console.log(res);
+          // console.log(res);
           self.groupInfo = res;
 
           if (self._Group) {
@@ -549,11 +549,12 @@ var siteObj = siteObj ? siteObj : {};
           }
 
           if (res.Images) {
-            console.log(res.Images);
+            // console.log(res.Images);
             self.groupImages = res.Images;
             self.getImages(groupId, res.Images);
           } else {
             const _NoImgs = document.createElement('p');
+            _NoImgs.classList.add('no-imgs');
             _NoImgs.textContent = 'No images have been added yet';
             self._ImagesContainer.append(_NoImgs);
           }
@@ -643,6 +644,12 @@ var siteObj = siteObj ? siteObj : {};
         </a>
       `;
 
+      // check for and remove no image message
+      const _NoImg = document.querySelector('.no-imgs');
+      if (_NoImg) {
+        const _Parent = _NoImg.parentElement;
+        _Parent.removeChild(_NoImg);
+      }
 
       if (_ImageTarget) {
         _ImageTarget.innerHTML = imageTemplate;
@@ -651,7 +658,7 @@ var siteObj = siteObj ? siteObj : {};
       }
 
       imagesLoaded(_Target, () => {
-        console.log('done');
+        // console.log('done');
         _Target.classList.add('image-in');
       });
     },
@@ -675,7 +682,7 @@ var siteObj = siteObj ? siteObj : {};
       self._ImagesContainer.append(_Fig);
       siteObj.getInfo.getImageUrl(imageId, fileType)
         .then(res => {
-          console.log(res);
+          // console.log(res);
           // we have the image so now we'll update our object of images;
           self.addImage(imageId, res, _Fig);
           self.bindImgOpenEvent(_Fig);
@@ -766,7 +773,7 @@ var siteObj = siteObj ? siteObj : {};
         return;
       }
 
-      console.log(imageData);
+      // console.log(imageData);
 
       const title = imageData.imageName;
       const added = imageData.dateTimeAdded;
@@ -780,7 +787,7 @@ var siteObj = siteObj ? siteObj : {};
         for (const comment in comments) {
           commentsArray.push({[comment]: comments[comment]});
         }
-        console.log(commentsArray);
+        // console.log(commentsArray);
       }
 
       if (imageData.likes) {
@@ -957,7 +964,7 @@ var siteObj = siteObj ? siteObj : {};
         .then(res => {
           res.json()
             .then(resJson => {
-              console.log(resJson);
+              // console.log(resJson);
             })
             .catch(err => {
               console.log(err);
@@ -999,17 +1006,16 @@ var siteObj = siteObj ? siteObj : {};
           Object.keys(data.comments).map(commentId => {
             self.addSingleComment(commentId, data.comments[commentId]);
           });
+          self.groupImages[dataImageId].comments = data.comments;
           return;
         }
 
         // check for difference between existing comments and new data
         for (const commentId in data.comments) {
-          console.log(commentId);
-          
+          // console.log(commentId);
+
           if (!existingCommentsData[commentId]) {
             const newComment = data.comments[commentId];
-            console.log('new comment');
-            console.log(newComment);
             self.addSingleComment(commentId, newComment);
           }
         }
@@ -1119,7 +1125,8 @@ var siteObj = siteObj ? siteObj : {};
       }
 
       if (fileSize > siteObj.globals.maxFilesize) {
-        console.log('file too big');
+        // console.log('file too big');
+        window.alert('maximum file size allowed is 10mb');
         return;
       }
 
@@ -1200,7 +1207,7 @@ var siteObj = siteObj ? siteObj : {};
           }
 
           if (self._ProgressNum) {
-            self._ProgressNum.textContent = `${progress}%`;
+            self._ProgressNum.textContent = `${progress.toFixed(2)}%`;
           }
         }, function(error) {
           console.log(error);
@@ -1213,7 +1220,7 @@ var siteObj = siteObj ? siteObj : {};
         const downloadURL = uploadTask.snapshot.downloadURL;
         self.closeModal();
 
-        console.log(imageKey);
+        // console.log(imageKey);
         fetch(`${siteObj.globals.webserviceUrl}/broadcastImgUpload`, {
           method: 'POST',
           headers: new Headers({
@@ -1285,7 +1292,7 @@ var siteObj = siteObj ? siteObj : {};
 
       // google auth actions - listen for user sign-in
       firebase.auth().onAuthStateChanged((user) => {
-        console.log('user changed');
+        // console.log('user changed');
         if (user) {
           self.userSignedIn(user);
         }
@@ -1714,13 +1721,13 @@ var siteObj = siteObj ? siteObj : {};
 
       // Connection opened
       self.socket.addEventListener('open', function (event) {
-        console.log('socket open');
+        // console.log('socket open');
 
         // Listen for messages
         self.socket.onmessage = function (event) {
           // console.log('socket message');
           // console.log(event);
-          
+
           // arbitrary delay as I seemed to be getting hammered with pointless updates (probably doing something wrong)
           if (event.timeStamp - self.mssgTime < 100) {
             return;
@@ -1736,7 +1743,7 @@ var siteObj = siteObj ? siteObj : {};
             }
 
             if (jsonData.update === 'new image') {
-              console.log(jsonData);
+              // console.log(jsonData);
               self.findNewImages(jsonData);
             }
           } catch(err) {
@@ -1819,14 +1826,14 @@ var siteObj = siteObj ? siteObj : {};
           console.log(err);
         })
         .then(res => {
-          console.log(res);
+          // console.log(res);
 
           res.json()
             .catch(err => {
               console.log(err);
             })
             .then(resJson => {
-              console.log(resJson);
+              // console.log(resJson);
             });
         });
     }
