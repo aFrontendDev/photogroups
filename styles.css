@@ -1,22 +1,7 @@
-/* fonts */
-
-@font-face {
-  font-family: 'barlow';
-  src: url('./fonts/barlow-black-webfont.woff2') format('woff2');
-  font-weight: 900;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'barlow';
-  src: url('./fonts/barlow-light-webfont.woff2') format('woff2');
-  font-weight: 300;
-  font-style: normal;
-}
 
 /* settings */
 :root {
-  --custom-font: 'barlow', sans-serif;
+  --custom-font: 'Cabin', sans-serif;
   --color-text: #000;
   --max-width: 1440px;
   --vr: 6px;
@@ -315,7 +300,7 @@ fieldset {
   color: var(--color-text);
   font-family: sans-serif;
   font-size: 16px;
-  font-weight: 900;
+  font-weight: 700;
   cursor: pointer;
   display: inline-block;
   position: relative;
@@ -508,7 +493,7 @@ h1,
 h2,
 h3 {
   font-family: var(--custom-font);
-  font-weight: 300;
+  font-weight: 400;
   margin-top: 0;
   margin-bottom: calc(var(--vr) * 2);
 }
@@ -516,7 +501,7 @@ h3 {
 h1 span,
 h2 span,
 h3 span {
-  font-weight: 900;
+  font-weight: 700;
 }
 
 p {
@@ -537,7 +522,7 @@ p {
 .title-style-a {
   font-family: var(--custom-font);
   font-size: 24px;
-  font-weight: 900;
+  font-weight: 700;
   text-decoration: underline;
 }
 
@@ -546,7 +531,7 @@ p {
   display: inline-block;
   font-family: var(--custom-font);
   font-size: 32px;
-  font-weight: 900;
+  font-weight: 700;
 }
 
 .title-style-b::before {
@@ -612,7 +597,7 @@ p {
 
 .header__title .title {
   color: var(--color-d);
-  margin-top: 9px;
+  /* margin-top: 9px; */
 }
 
 .header__title .title span {
@@ -684,10 +669,10 @@ p {
   .header__title {
     margin: 0;
   }
-
+/* 
   .header__title .title {
     margin-top: 3px;
-  }
+  } */
 
   .header__utils-item {
     margin-left: var(--ggw);
@@ -847,7 +832,7 @@ p {
 
 .menu__title {
   text-decoration: underline;
-  font-weight: 900;
+  font-weight: 700;
 }
 
 .menu__list {
@@ -1088,7 +1073,7 @@ p {
 .group__title {
   float: left;
   font-size: 32px;
-  font-weight: 900;
+  font-weight: 700;
   margin-bottom: 0;
 }
 
@@ -1133,7 +1118,7 @@ p {
   right: 0;
   background-color: var(--color-d);
   color: #fff;
-  font-weight: 900;
+  font-weight: 700;
   border: solid 2px var(--color-a);
   overflow: hidden;
   height: 0;
@@ -1483,7 +1468,7 @@ p {
 }
 
 .comment__name {
-  font-weight: 900;
+  font-weight: 700;
   font-family: var(--custom-font);
   color: var(--color-b);
 }
@@ -1544,7 +1529,7 @@ p {
 
 .section--style-a .section__title {
   font-size: 32px;
-  font-weight: 900;
+  font-weight: 700;
   color: var(--color-d);
 }
 
@@ -1570,7 +1555,7 @@ p {
 
 .steps__number {
   font-family: var(--custom-font);
-  font-weight: 900;
+  font-weight: 700;
   color: var(--color-d);
   border: solid 2px;
   border-radius: 50%;
@@ -1582,9 +1567,9 @@ p {
 
 .steps__number::after {
   position: absolute;
-  top: 18%;
+  top: 50%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%);
   font-size: 55px;
   color: currentColor;
   font-family: var(--custom-font);
