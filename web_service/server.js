@@ -179,9 +179,10 @@ app.post('/getGroups', function(req, res) {
 
 app.post('/addGroup', function(req, res) {
   const user = req.body.user;
+  const userName = req.body.userName;
   const groupName = req.body.groupName;
 
-  firebase.addGroup(user, groupName)
+  firebase.addGroup(user, groupName, userName)
     .then(function(response) {
       // console.log(response);
       res.send(response);

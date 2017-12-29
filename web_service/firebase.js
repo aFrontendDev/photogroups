@@ -396,7 +396,7 @@ module.exports = {
     });
   },
 
-  addGroup(user, groupName) {
+  addGroup(user, groupName, userName) {
     const database = admin.database().ref('Groups/').push({
       "creator": user,
       "groupName": groupName
@@ -418,7 +418,7 @@ module.exports = {
 
           if (!errored) {
             admin.database().ref(`Groups/${key}/Users/`).update({
-              [user]: true
+              [user]: userName
             })
               .catch(err => {
                 errored = true;

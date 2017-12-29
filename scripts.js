@@ -262,7 +262,8 @@ var siteObj = siteObj ? siteObj : {};
         }),
         body: JSON.stringify({
           groupName,
-          user: siteObj.globals.user.uid
+          user: siteObj.globals.user.uid,
+          userName: siteObj.globals.user.displayName
         })
       })
         .then(res => {
