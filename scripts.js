@@ -15,9 +15,9 @@ var siteObj = siteObj ? siteObj : {};
     },
     _Html: document.querySelector('html'),
     // webserviceUrl: 'http://photogroups.192.168.0.3.xip.io:4000',
-    webserviceUrl: 'http://127.0.0.1:4000',
+    webserviceUrl: 'http://138.68.135.21/:4000',
     // groupsUrl: 'http://photogroups.192.168.0.3.xip.io/group',
-    groupsUrl: 'http://localhost:8080/group.html',
+    groupsUrl: './group.html',
     imgCompUrl: 'https://img.gs/jqtzrcgzdh/quality=low/',
     validationErrorClass: 'validation-errors',
     groupId: null,
@@ -1727,7 +1727,7 @@ var siteObj = siteObj ? siteObj : {};
     init() {
       const self = this;
 
-      self.socket = new WebSocket('ws://localhost:4500');
+      self.socket = new WebSocket('ws://138.68.135.21:4500');
       self.bindEvents();
     },
     bindEvents() {

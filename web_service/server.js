@@ -271,7 +271,7 @@ app.get('/test', function (req, res) {
 
 
 // START *** Use Express to listen to port
-app.listen(4000, '127.0.0.1', function () {
+app.listen(4000, '138.68.135.21', function () {
   firebase.initFirebase();
   console.log('init');
 });
