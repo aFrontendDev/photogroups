@@ -129,23 +129,25 @@ module.exports = {
     });
   },
 
-  broadcastImageUpdate(imageId) {
+  broadcastImageUpdate(imageId, groupId) {
 
-    if (!imageId) {
+    if (!imageId || !groupId) {
       return;
     }
 
-    admin.database().ref('Images/').child(imageId).once('value', function(snapshot) {
+    admin.database().ref(`Groups/${groupId}/Images/`).child(imageId).once('value', function(snapshot) {
       const imageExists = (snapshot.val() !== null) ? true : false;
 
       if (imageExists) {
 
         wss.clients.forEach(function each(client) {
           if (client.readyState === webSocket.OPEN) {
+            const snapshotData = snapshot.val();
             const imagesString = JSON.stringify(
               {
                 "update": "new image",
-                [imageId]: snapshot.val()
+                [imageId]: snapshotData,
+                groupId
               }
             );
             client.send(imagesString);
@@ -243,7 +245,7 @@ module.exports = {
     });
   },
 
-  associateImgToGroup(imageKey, group, user, fileType, imageName) {
+  associateImgToGroup(imageKey, group, user, fileType, imageName, userName) {
     let groupExists = false;
 
     return new Promise(function(resolve, reject) {
@@ -261,6 +263,7 @@ module.exports = {
               fileType,
               imageName,
               user,
+              userName,
               dateAdded: dateNow,
               timeAdded: timeNow,
               dateTimeAdded: dateTimeNow

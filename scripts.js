@@ -14,10 +14,12 @@ var siteObj = siteObj ? siteObj : {};
       messagingSenderId: "959482757186"
     },
     _Html: document.querySelector('html'),
-    // webserviceUrl: 'http://photogroups.192.168.0.3.xip.io:4000',
     webserviceUrl: 'http://138.68.135.21:4000',
-    // groupsUrl: 'http://photogroups.192.168.0.3.xip.io/group',
-    groupsUrl: './group.html',
+    // webserviceUrl: 'http://127.0.0.1:4000',
+    groupsUrl: 'http://138.68.135.21/group.html',
+    // groupsUrl: 'http://localhost:8080/group.html',
+    websocketUrl: 'ws://138.68.135.21:4500',
+    // websocketUrl: 'ws://127.0.0.1:4500',
     imgCompUrl: 'https://img.gs/jqtzrcgzdh/quality=low/',
     validationErrorClass: 'validation-errors',
     groupId: null,
@@ -105,6 +107,7 @@ var siteObj = siteObj ? siteObj : {};
           imageKey,
           group: imageData.groupId,
           user: imageData.userId,
+          userName: imageData.userName,
           fileType: imageData.fileType,
           imageName: imageData.name
         })
@@ -1237,6 +1240,7 @@ var siteObj = siteObj ? siteObj : {};
           }),
           body: JSON.stringify({
             imageKey,
+            groupId: siteObj.globals.groupId
           })
         })
           .catch(err => {
@@ -1728,23 +1732,21 @@ var siteObj = siteObj ? siteObj : {};
     init() {
       const self = this;
 
-      self.socket = new WebSocket('ws://138.68.135.21:4500');
+      self.socket = new WebSocket(siteObj.globals.websocketUrl);
       self.bindEvents();
     },
     bindEvents() {
       const self = this;
 
-      // Connection opened
       self.socket.addEventListener('open', function (event) {
-        // console.log('socket open');
 
         // Listen for messages
         self.socket.onmessage = function (event) {
-          // console.log('socket message');
-          // console.log(event);
+          console.log('ws message');
+          console.log(event);
 
           // arbitrary delay as I seemed to be getting hammered with pointless updates (probably doing something wrong)
-          if (event.timeStamp - self.mssgTime < 100) {
+          if (event.timeStamp - self.mssgTime < 1000) {
             return;
           }
 
@@ -1757,8 +1759,7 @@ var siteObj = siteObj ? siteObj : {};
               siteObj.getGroupInfo.updateModalImg(jsonData);
             }
 
-            if (jsonData.update === 'new image') {
-              // console.log(jsonData);
+            if (jsonData.update === 'new image' && jsonData.groupId === siteObj.globals.groupId) {
               self.findNewImages(jsonData);
             }
           } catch(err) {
@@ -1796,17 +1797,12 @@ var siteObj = siteObj ? siteObj : {};
         return;
       }
 
-      
       for (const item in imagesObject) {
-        // const existingImages = Object.keys(siteObj.getGroupInfo.groupImages).length;
         const existingImages = siteObj.getGroupInfo.groupImages;
         const imageId = item;
         const imageObject = imagesObject[imageId];
 
         if (imageId !== 'update') {
-          // if (existingImages < 1) {
-          //   siteObj.getGroupInfo.groupImages[imageId] = imageObject;
-          // }
 
           if (!existingImages[item]) {
             siteObj.getGroupInfo.addSingleImage(imageId, imageObject);

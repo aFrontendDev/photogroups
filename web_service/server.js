@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 'use strict';
 
 const express = require('express');
@@ -31,12 +32,13 @@ app.all('*', function(req, res, next) {
 
 app.post('/broadcastImgUpload', function(req, res) {
   const imageKey = req.body.imageKey;
+  const groupId = req.body.groupId;
   
-  if (!imageKey) {
-    res.status(500).send('no image key');
+  if (!imageKey || !groupId) {
+    res.status(500).send('no image key or groupId');
   }
 
-  firebase.broadcastImageUpdate(imageKey);
+  firebase.broadcastImageUpdate(imageKey, groupId);
 });
 
 app.post('/watchGroupImage', function(req, res) {
@@ -134,11 +136,12 @@ app.post('/ImgToGroup', function(req, res) {
   const imageKey = req.body.imageKey;
   const group = req.body.group;
   const user = req.body.user;
+  const userName = req.body.userName;
   const fileType = req.body.fileType;
   const imageName = req.body.imageName;
   // console.log('/ImgToGroup');
 
-  firebase.associateImgToGroup(imageKey, group, user, fileType, imageName)
+  firebase.associateImgToGroup(imageKey, group, user, fileType, imageName, userName)
     .then(function(response) {
       res.send(response);
     })
@@ -273,7 +276,7 @@ app.get('/test', function (req, res) {
 
 
 // START *** Use Express to listen to port
-app.listen(4000, '138.68.135.21', function () {
+app.listen(4000, '127.0.0.1', function () {
   firebase.initFirebase();
   console.log('init');
 });
