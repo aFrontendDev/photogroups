@@ -2,11 +2,18 @@
 
 'use strict';
 
+const https = require('https');
+const fs = require('fs');
 const express = require('express');
 const bodyParser = require('body-parser');
 const firebase = require('./firebase');
 
 const app = express();
+
+const options = {
+  cert: fs.readFileSync('./certs/fullchain.pem'),
+  key: fs.readFileSync('./certs/privkey.pem')
+};
 
 //  Middle-ware for handling post requests
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -276,9 +283,11 @@ app.get('/test', function (req, res) {
 
 
 // START *** Use Express to listen to port
-app.listen(4000, '127.0.0.1', function () {
+app.listen(4001, function () {
   firebase.initFirebase();
   console.log('init');
 });
+
+https.createServer(options, app).listen(4000);
 // END *****
 

@@ -1,6 +1,20 @@
+const https = require('https');
+const fs = require('fs');
+const express = require('express');
 const webSocket = require('ws')
 const webSocketServer = webSocket.Server;
-const wss = new webSocketServer({ port: 4500});
+//const wss = new webSocketServer({ port: 4500});
+
+const app = express();
+const options = {
+  cert: fs.readFileSync('./certs/fullchain.pem'),
+  key: fs.readFileSync('./certs/privkey.pem')
+};
+
+const server = https.createServer(options, app);
+const wss = new webSocketServer({
+  server
+});
 
 // firebase connection
 const firebase = require('firebase');
@@ -43,6 +57,7 @@ wss.on('connection', function connection(ws) {
   ws.send('hello');
 });
 
+server.listen(4500);
 // END *****
 
 module.exports = {
