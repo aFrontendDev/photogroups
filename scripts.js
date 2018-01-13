@@ -1442,7 +1442,6 @@ var siteObj = siteObj ? siteObj : {};
     googleSigninHandler() {
       const self = siteObj.userActions;
       const provider = new firebase.auth.GoogleAuthProvider();
-      provider.addScope('https://www.googleapis.com/auth/contacts.readonly');
 
       window.localStorage.setItem('newUser', true);
       firebase.auth().signInWithRedirect(provider)
